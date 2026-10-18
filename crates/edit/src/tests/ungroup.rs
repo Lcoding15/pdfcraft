@@ -253,3 +253,30 @@ fn ungrouping_changes_only_the_chosen_placement() {
     assert!((blocks[0].rect[0] - 205.0).abs() < 0.01, "{blocks:?}");
     assert_eq!(streams(&doc, 1), other_before);
 }
+
+/// A nested Form without `/Resources` names its resources from the group that draws it. Once a
+/// clashing name is renamed for the page, inlining would leave the nested Form reading the page's
+/// resource of that name instead: refused. Without a clash it is ungrouped as before.
+#[test]
+fn ungrouping_refuses_renames_a_nested_form_would_miss() {
+    let nested = stream("/Type /XObject /Subtype /Form /BBox [0 0 100 100]", "BT /F1 10 Tf 5 5 Td (Inner) Tj ET");
+    let mut clash = grouped_page(
+        "/Fm1 Do",
+        "/BBox [0 0 600 800] /Resources << /Font << /F1 7 0 R >> /XObject << /In 8 0 R >> >>",
+        "BT /F1 12 Tf 72 700 Td (Outer) Tj ET /In Do",
+        &["<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>", &nested],
+    );
+    let before = streams(&clash, 0);
+    let err = ungroup_form(&mut clash, 0, 0).unwrap_err().to_string();
+    assert!(err.contains("nested group"), "{err}");
+    assert_eq!(streams(&clash, 0), before, "a refusal changes nothing");
+
+    // The same nested Form, but the group's /F1 is the page's /F1: nothing is renamed.
+    let mut shared = grouped_page(
+        "/Fm1 Do",
+        "/BBox [0 0 600 800] /Resources << /Font << /F1 5 0 R >> /XObject << /In 7 0 R >> >>",
+        "BT /F1 12 Tf 72 700 Td (Outer) Tj ET /In Do",
+        &[&nested],
+    );
+    ungroup_form(&mut shared, 0, 0).unwrap();
+}

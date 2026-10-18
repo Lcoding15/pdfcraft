@@ -85,6 +85,17 @@ fn opaque_resources(doc: &Document, resources: &Dict) -> bool {
     })
 }
 
+/// Whether a Form among `resources`' XObjects has no `/Resources` of its own, and so names its
+/// resources from the content that draws it (§7.8.3). Once that content is inlined, such a Form
+/// reads the page's resources instead: a renamed name would then mean the page's resource, not
+/// the group's. Forms it draws in turn look their names up in the same dictionary.
+fn inherits_resources(doc: &Document, resources: &Dict) -> bool {
+    let xobjects = resolved_dict(doc, resources.get(b"XObject")).unwrap_or_default();
+    xobjects.iter().any(|(_, x)| {
+        resolved_dict(doc, Some(x)).is_some_and(|d| d.name(b"Subtype") == Some(b"Form") && resolved_dict(doc, d.get(b"Resources")).is_none())
+    })
+}
+
 /// Whether the graphics state in effect at operator `target` of `ops` has transparency set by
 /// `gs`, which would apply to a group as a whole but to each object once ungrouped.
 fn transparent_at(doc: &Document, ops: &[Op], target: usize, states: &Dict) -> bool {
@@ -365,6 +376,11 @@ pub fn ungroup_form(doc: &mut Document, page: usize, index: usize) -> Result<(),
     }
 
     let renames = merge_resources(doc, &mut resources, &form_resources)?;
+    if !renames.is_empty() && inherits_resources(doc, &form_resources) {
+        return Err(invalid(
+            "the group holds a nested group that uses the group's resources, and one of their names means something else on the page; it stays grouped",
+        ));
+    }
     let mut properties = None;
     if let Some(oc) = form.dict.get(b"OC") {
         // Optional content on the form: the inlined content is marked with the same membership.
