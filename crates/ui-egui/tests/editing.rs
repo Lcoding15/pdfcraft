@@ -2911,11 +2911,10 @@ fn editing_existing_form_artwork_on_the_page() {
     check_existing_artwork("figure.pdf", write_incremental(&doc, &SaveOptions::default()).unwrap());
 }
 
-/// A page drawn as one Form XObject, as CAD exports draw it: the group's menu offers Ungroup,
-/// and a double-click on the group does the same, after which its text is a paragraph of the
-/// page and the group is gone.
-#[test]
-fn ungrouping_page_sized_form_artwork_frees_its_text() {
+/// A page drawn as one Form XObject, as CAD exports draw it, open in Edit text & images with its
+/// pictures rendered. The harness clock moves on half a second between two clicks, past egui's
+/// 0.3 s, so double-clicks are allowed a second.
+fn cad_page_harness() -> Harness<'static, PdfCraftApp> {
     use pdfcraft_cos::{Dict, Document, Object, SaveOptions, Stream, write_incremental};
     let mut doc = Document::open(std::sync::Arc::new(fixture(1))).unwrap();
     let page = pdfcraft_model::pages(&doc)[0].clone();
@@ -2957,10 +2956,32 @@ fn ungrouping_page_sized_form_artwork_frees_its_text() {
         }
         std::thread::sleep(std::time::Duration::from_millis(5));
     }
-    let id = h.state().views[0].id;
-    assert!(h.state().session.get(id).unwrap().text_blocks(0).is_empty(), "the text is inside the group");
     h.state_mut().set_option("quick", "edit-text").unwrap();
     h.run_steps(3);
+    h.ctx.options_mut(|o| o.input_options.max_double_click_delay = 1.0);
+    h
+}
+
+/// Two quick presses at `at`, each with its release, one frame apart.
+fn double_click_at(h: &mut Harness<'static, PdfCraftApp>, at: egui::Pos2) {
+    h.hover_at(at);
+    h.run_steps(1);
+    for _ in 0..2 {
+        for pressed in [true, false] {
+            h.event(egui::Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed, modifiers: egui::Modifiers::NONE });
+        }
+        h.run_steps(1);
+    }
+    h.run_steps(4);
+}
+
+/// The group's menu offers Ungroup, and a double-click on the group does the same, after which
+/// its text is a paragraph of the page and the group is gone.
+#[test]
+fn ungrouping_page_sized_form_artwork_frees_its_text() {
+    let mut h = cad_page_harness();
+    let id = h.state().views[0].id;
+    assert!(h.state().session.get(id).unwrap().text_blocks(0).is_empty(), "the text is inside the group");
     let r = h.state().views[0].page_screen_rect(0).expect("on screen");
     // The middle of the page: inside the group's fill, below its text.
     let at = r.center();
@@ -2971,18 +2992,7 @@ fn ungrouping_page_sized_form_artwork_frees_its_text() {
             && doc.text_blocks(0).iter().map(|b| b.text.as_str()).collect::<Vec<_>>() == ["Schema"]
     };
 
-    // A double-click on the group. The harness clock moves on half a second between two clicks,
-    // past egui's 0.3 s, so the test allows a second.
-    h.ctx.options_mut(|o| o.input_options.max_double_click_delay = 1.0);
-    h.hover_at(at);
-    h.run_steps(1);
-    for _ in 0..2 {
-        for pressed in [true, false] {
-            h.event(egui::Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed, modifiers: egui::Modifiers::NONE });
-        }
-        h.run_steps(1);
-    }
-    h.run_steps(4);
+    double_click_at(&mut h, at);
     assert!(ungrouped(&h), "a double-click ungroups");
     h.key_press_modifiers(Modifiers::COMMAND, Key::Z);
     h.run_steps(4);
@@ -2995,6 +3005,25 @@ fn ungrouping_page_sized_form_artwork_frees_its_text() {
     h.get_by_label("Ungroup").click();
     h.run_steps(4);
     assert!(ungrouped(&h), "the menu item ungroups");
+}
+
+/// The group's menu lies over the group itself. A double-click on one of its items is a click on
+/// the item and then, once the menu has closed, a press on the group: that is not a double-click
+/// on the group, and must not ungroup it.
+#[test]
+fn a_double_click_on_a_menu_item_over_a_group_does_not_ungroup_it() {
+    let mut h = cad_page_harness();
+    let id = h.state().views[0].id;
+    let r = h.state().views[0].page_screen_rect(0).expect("on screen");
+    right_click_at(&mut h, r.center());
+    h.run_steps(1);
+    let item = h.get_by_label("Flip Horizontal").rect().center();
+    assert!(r.contains(item), "the item lies over the group: {item:?} in {r:?}");
+    double_click_at(&mut h, item);
+    let doc = h.state().session.get(id).unwrap();
+    assert_eq!(doc.can_undo(), Some("Flip image"), "the item ran; the press on it does not count towards a double-click");
+    assert_eq!(doc.page_images(0).len(), 1, "the group stays grouped");
+    assert!(doc.page_images(0)[0].is_form);
 }
 
 fn check_existing_artwork(name: &'static str, bytes: Vec<u8>) {

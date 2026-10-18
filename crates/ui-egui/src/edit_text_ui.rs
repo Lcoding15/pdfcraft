@@ -682,9 +682,15 @@ pub(crate) fn image_input(
     // A double-click on grouped artwork ungroups it, whether or not it was selected first. Presses
     // are counted here, with egui's own limits, as the text selection counts them (#1024): on a
     // selected group the second press starts a drag, and a press and release that arrive in one
-    // pass are not reported as a double-click.
+    // pass are not reported as a double-click. Only presses this page receives count: a menu over
+    // the group is not the group, so a double-click on a menu item over it must not ungroup it, and
+    // a press anywhere else ends the count.
     let press = ui.input(|i| i.pointer.primary_pressed().then(|| (i.time, i.pointer.interact_pos())));
+    if press.is_some() && !resp.contains_pointer() {
+        view.group_press = None;
+    }
     if allow_interaction
+        && resp.contains_pointer()
         && let Some((now, Some(p))) = press
         && let Some(hit) = boxes.iter().enumerate().rposition(|(i, b)| b.is_positive() && b.contains(p) && image_contains(i, p))
         && images.get(hit).is_some_and(|image| image.is_form)
