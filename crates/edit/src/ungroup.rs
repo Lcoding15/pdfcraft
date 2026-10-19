@@ -339,21 +339,14 @@ pub fn ungroup_form(doc: &mut Document, page: usize, index: usize) -> Result<(),
     }
     let closing = closing_ops(&parsed.ops)?;
 
-    // Locate the `Do` among all of the page's streams, as the image edits do.
+    // The `Do` among the page's streams joined, as the image edits index it.
     let p_streams = crate::images::content_streams(doc, &p.dict);
-    let mut offset = 0usize;
-    for (_, d) in p_streams.iter().take(image.stream) {
-        offset = offset.checked_add(d.len()).and_then(|n| n.checked_add(1)).ok_or_else(|| invalid("the page content is too large"))?;
-    }
-    let own = p_streams.get(image.stream).ok_or_else(|| invalid("the group's page stream is missing"))?;
-    let do_op = parse(&own.1).ops.get(image.op).cloned().ok_or_else(|| invalid("the group's drawing operation is missing"))?;
-    let span = offset.checked_add(do_op.span.start).ok_or_else(|| invalid("the page content is too large"))?;
     let pieces = Pieces::join(&p_streams.iter().map(|(_, d)| d.as_slice()).collect::<Vec<_>>());
     let page_ops = pieces.parse().ops;
-    let target = page_ops
-        .iter()
-        .position(|op| op.span.start == span && op.is("Do"))
-        .ok_or_else(|| invalid("the group's drawing operation could not be located"))?;
+    let target = image.op;
+    if !page_ops.get(target).is_some_and(|op| op.is("Do")) {
+        return Err(invalid("the group's drawing operation could not be located"));
+    }
     // A `Do` inside a text object is invalid (§9.4) and some viewers still draw it; inlining a
     // form's own text objects there would nest them.
     let in_text = page_ops.iter().take(target).fold(false, |text, op| {
