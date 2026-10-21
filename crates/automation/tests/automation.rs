@@ -3942,15 +3942,13 @@ fn natural_image_stamps_through_tools_on_rotated_pages() {
         let mut reader = png::Decoder::new(std::io::Cursor::new(data)).read_info().unwrap();
         let mut pixels = vec![0; reader.output_buffer_size().unwrap()];
         let info = reader.next_frame(&mut pixels).unwrap();
-        assert_eq!(info.color_type, png::ColorType::Rgba);
-        for ((x, y), colour) in [(80, 90), (120, 90), (80, 110), (120, 110)].into_iter().zip([
-            [240, 20, 20, 255],
-            [20, 180, 20, 255],
-            [20, 20, 240, 255],
-            [230, 180, 20, 255],
-        ]) {
-            let offset = ((y * info.width + x) * 4) as usize;
-            assert_eq!(&pixels[offset..offset + 4], &colour, "page rotation {degrees}");
+        // A rendered page is opaque, so it comes as RGB.
+        assert_eq!(info.color_type, png::ColorType::Rgb);
+        for ((x, y), colour) in
+            [(80, 90), (120, 90), (80, 110), (120, 110)].into_iter().zip([[240, 20, 20], [20, 180, 20], [20, 20, 240], [230, 180, 20]])
+        {
+            let offset = ((y * info.width + x) * 3) as usize;
+            assert_eq!(&pixels[offset..offset + 3], &colour, "page rotation {degrees}");
         }
     }
 }
@@ -6577,7 +6575,8 @@ fn reading_colors_workdir() -> PathBuf {
     dir
 }
 
-/// Decodes a `page_render` PNG (pages here are 200×300 pt) into RGBA pixels.
+/// Decodes a `page_render` PNG (pages here are 200×300 pt) into RGBA pixels. Opaque pages
+/// come as RGB; their alpha is 255.
 fn png_pixels(content: &Content) -> Vec<u8> {
     let Content::Png { data, width, height } = content else { panic!("expected a PNG") };
     assert_eq!((*width, *height), (200, 300));
@@ -6585,7 +6584,11 @@ fn png_pixels(content: &Content) -> Vec<u8> {
     let mut pixels = vec![0; reader.output_buffer_size().unwrap()];
     let info = reader.next_frame(&mut pixels).unwrap();
     assert_eq!((info.width, info.height), (200, 300));
-    pixels
+    match info.color_type {
+        png::ColorType::Rgba => pixels,
+        png::ColorType::Rgb => pixels.as_chunks::<3>().0.iter().flat_map(|p| [p[0], p[1], p[2], 255]).collect(),
+        other => panic!("unexpected colour type {other:?}"),
+    }
 }
 
 /// The RGBA pixel at (`x`, `y`), top-left origin, of a 200-wide image.
@@ -6826,6 +6829,65 @@ fn a_root_less_write_output_is_atomic_too() {
     let e = free.write_output(&dir.join("new").to_string_lossy(), &[4]).unwrap_err();
     assert!(matches!(&e, ToolError::Failed(m) if m.contains("is a folder")), "{e:?}");
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn fdf_nested_comment_values_survive_export_import_and_save_through_tools() {
+    use pdfcraft_cos::{Dict, Document, Object, PdfString, SaveOptions, write_full};
+    use std::sync::Arc;
+    let dir = workdir("fdf-nested-values");
+    let mut source = Document::open(Arc::new(fixture(1))).unwrap();
+    let page = pdfcraft_model::pages(&source)[0].obj;
+    let mut note = Dict::new();
+    note.set(b"Type".to_vec(), Object::name("Annot"));
+    note.set(b"Subtype".to_vec(), Object::name("Square"));
+    note.set(b"NM".to_vec(), PdfString::text("nested-values"));
+    note.set(b"Rect".to_vec(), Object::Array([10, 20, 30, 40].map(|value| Object::Ref(source.add(Object::Int(value)))).into()));
+    note.set(b"C".to_vec(), Object::Array([0.25, 0.5, 0.75].map(|value| Object::Ref(source.add(Object::Real(value)))).into()));
+    let note = source.add(note);
+    source.update_dict(page, |dict| dict.set(b"Annots".to_vec(), Object::Array(vec![Object::Ref(note)]))).unwrap();
+    std::fs::write(dir.join("source.pdf"), write_full(&source, &SaveOptions::default()).unwrap()).unwrap();
+    let mut a = auto(&dir);
+    let source = ok(&mut a, "doc_open", json!({ "path": "source.pdf" }))["doc"].as_u64().unwrap();
+
+    ok(&mut a, "doc_export_data", json!({ "doc": source, "path": "notes.fdf", "what": "comments" }));
+    let target = ok(&mut a, "doc_open", json!({ "path": "b.pdf" }))["doc"].as_u64().unwrap();
+    ok(&mut a, "doc_import_data", json!({ "doc": target, "path": "notes.fdf" }));
+    ok(&mut a, "doc_save", json!({ "doc": target, "path": "restored.pdf" }));
+    let reopened = ok(&mut a, "doc_open", json!({ "path": "restored.pdf" }))["doc"].as_u64().unwrap();
+    let after = ok(&mut a, "comment_list", json!({ "doc": reopened }));
+    // The saved input has legal indirect scalar numbers. The engine's source inspection
+    // currently reads those as defaults, so compare the restored data to the fixture's
+    // known values (converted from PDF bottom-left to the tool's top-left coordinates).
+    assert_eq!(after["comments"][0]["rect"], json!([10.0, 260.0, 30.0, 280.0]));
+    assert_eq!(after["comments"][0]["color"], "#4080BF");
+}
+
+#[test]
+fn refused_fdf_export_keeps_the_destination_and_source_through_tools() {
+    use pdfcraft_cos::{Dict, Document, Object, SaveOptions, write_full};
+    use std::sync::Arc;
+    let dir = workdir("fdf-export-limit");
+    let mut source = Document::open(Arc::new(fixture(1))).unwrap();
+    let page = pdfcraft_model::pages(&source)[0].obj;
+    let mut note = Dict::new();
+    note.set(b"Type".to_vec(), Object::name("Annot"));
+    note.set(b"Subtype".to_vec(), Object::name("Square"));
+    note.set(b"Rect".to_vec(), Object::Array(vec![10.into(), 20.into(), 30.into(), 40.into()]));
+    note.set(b"PCData".to_vec(), Object::Array(vec![Object::Null; 100_001]));
+    let note = source.add(note);
+    source.update_dict(page, |dict| dict.set(b"Annots".to_vec(), Object::Array(vec![Object::Ref(note)]))).unwrap();
+    let bytes = write_full(&source, &SaveOptions::default()).unwrap();
+    std::fs::write(dir.join("source.pdf"), &bytes).unwrap();
+    std::fs::write(dir.join("notes.fdf"), b"existing destination").unwrap();
+    let mut a = auto(&dir);
+    let doc = ok(&mut a, "doc_open", json!({ "path": "source.pdf" }))["doc"].as_u64().unwrap();
+    let before = ok(&mut a, "comment_list", json!({ "doc": doc }));
+    let error = a.call("doc_export_data", &json!({ "doc": doc, "path": "notes.fdf", "what": "comments" })).unwrap_err();
+    assert!(error.to_string().contains("100,000 values"), "{error}");
+    assert_eq!(std::fs::read(dir.join("notes.fdf")).unwrap(), b"existing destination");
+    assert_eq!(std::fs::read(dir.join("source.pdf")).unwrap(), bytes);
+    assert_eq!(ok(&mut a, "comment_list", json!({ "doc": doc })), before);
 }
 
 #[test]
