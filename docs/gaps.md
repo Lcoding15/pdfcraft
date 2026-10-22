@@ -105,9 +105,8 @@ update the numbers.
 - **Fork progress (2026-10-17, partial):** pages drawn as one Form XObject (CAD exports such as
   WSCAD) selected as one page-sized group; Ungroup (context menu, double-click, `image_edit`
   `ungroup`) now puts a form's content on the page as §8.10.1 paints it, so its paragraphs and
-  pictures can be edited one by one, and composite fonts with `/ToUnicode /Identity-H` read as
-  Unicode (before, such pages had no selectable text). Still partial: Acrobat edits inside forms
-  without ungrouping; transparency groups whose blending would change, tagged forms and other
+  pictures can be edited one by one. Still partial: Acrobat edits inside forms without
+  ungrouping; transparency groups whose blending would change, tagged forms and other
   default colour spaces stay grouped; vector paths are still not selectable (`edit.vector-edit`).
   `edit.form-content-editing` is partial. Estimates are unchanged.
 
