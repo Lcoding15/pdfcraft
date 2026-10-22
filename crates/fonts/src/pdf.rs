@@ -807,12 +807,23 @@ impl Metrics {
         match self.std14 {
             // A font with no /Widths is one of the standard 14; use its published metrics.
             // Codes the font's encoding leaves undefined fall back to /MissingWidth.
-            Some(f) => match u8::try_from(code).map(|c| f.width(c)).unwrap_or(0.0) {
+            Some(f) => match u8::try_from(self.std14_code(f, code)).map(|c| f.width(c)).unwrap_or(0.0) {
                 0.0 => self.default * self.scale,
                 w => w / 1000.0,
             },
             None => self.default * self.scale,
         }
+    }
+
+    /// Where the standard-14 table, indexed by WinAnsi, holds the glyph `code` draws in this font:
+    /// its encoding (base and `/Differences`) names the glyph, so a remapped code is measured as
+    /// the glyph it now shows (#2894). Symbol and ZapfDingbats are indexed by their own encodings,
+    /// and a glyph WinAnsi has no code for keeps the code itself.
+    fn std14_code(&self, face: crate::Std14, code: u32) -> u32 {
+        if matches!(face, crate::Std14::Symbol | crate::Std14::ZapfDingbats) {
+            return code;
+        }
+        self.unicode.encoding.get(&code).and_then(|t| only_char(t)).and_then(crate::win_ansi_byte).map_or(code, u32::from)
     }
 
     /// Word spacing applies to the single-byte code 32 (§9.3.3).
@@ -1143,7 +1154,8 @@ pub fn glyph_unicode(name: &str) -> Option<char> {
     chars.next().filter(|_| chars.len() == 0)
 }
 
-/// Code → Unicode for a font: its ToUnicode CMap, else (simple fonts) its encoding.
+/// Code → Unicode for a font: its ToUnicode CMap (for a composite font, also the name
+/// `/Identity-H` or `/Identity-V`, read as code = Unicode), else (simple fonts) its encoding.
 fn unicode_map(doc: &Document, font: &Dict, composite: bool) -> Unicode {
     let mut out = Unicode::default();
     if !composite {
@@ -1214,8 +1226,10 @@ fn unicode_map(doc: &Document, font: &Dict, composite: bool) -> Unicode {
         }
         // `/ToUnicode /Identity-H` is not a stream, as ISO 32000-2 §9.10.3 requires, but CAD
         // exporters (WSCAD among them) write it for composite fonts whose two-byte codes are the
-        // UTF-16 code units. Acrobat, MuPDF and pdf.js read it as code = Unicode, and so does
-        // the renderer's text layer; without it the text could be seen but not edited or found.
+        // UTF-16 code units. Acrobat shows them as code = Unicode, and so does the renderer's
+        // text layer; without it the text could be seen but not edited or found. The same rule
+        // (code = Unicode, no controls or lone surrogates) is in the vendored renderer,
+        // `Type0Font::char_code_to_unicode` in vendor/hayro-interpret/src/font/cid.rs: keep both alike.
         Some(Object::Name(n)) if composite && matches!(n.as_slice(), b"Identity-H" | b"Identity-V") => {
             parse_to_unicode(&identity_to_unicode(), &mut out);
         }
@@ -1428,6 +1442,37 @@ mod tests {
         let m = Metrics::from_dict(&doc, &f);
         assert_eq!(m.decode(b"AB"), "éΩ");
         assert_eq!(m.encode("Ω").as_deref(), Some(&b"B"[..]));
+    }
+
+    /// A standard-14 font with no `/Widths` is measured by the glyph each code draws, not by the
+    /// glyph WinAnsi gives that code (#2894); `/Widths`, when present, still go by code.
+    #[test]
+    fn standard_fonts_without_widths_measure_the_glyph_their_differences_name() {
+        let mut doc = Document::new_empty();
+        let mut enc = Dict::new();
+        enc.set(b"BaseEncoding".to_vec(), Object::name("WinAnsiEncoding"));
+        let diffs =
+            vec![Object::Int(65), Object::name("W"), Object::Int(87), Object::name("A"), Object::name("uni03A9"), Object::name("not.a.glyph")];
+        enc.set(b"Differences".to_vec(), Object::Array(diffs));
+        let f = font(
+            &mut doc,
+            vec![("Subtype", Object::name("Type1")), ("BaseFont", Object::name("Helvetica")), ("Encoding", Object::Dict(enc.clone()))],
+        );
+        let m = Metrics::from_dict(&doc, &f);
+        assert_eq!((m.width(65), m.width(87)), (0.944, 0.667), "A and W swap their widths");
+        // Omega has no WinAnsi code and the last name reads as nothing: both keep their code's width.
+        assert_eq!((m.width(88), m.width(89)), (0.667, 0.667));
+        let f = font(
+            &mut doc,
+            vec![
+                ("Subtype", Object::name("Type1")),
+                ("BaseFont", Object::name("Helvetica")),
+                ("FirstChar", Object::Int(87)),
+                ("Widths", Object::Array(vec![Object::Int(500)])),
+                ("Encoding", Object::Dict(enc)),
+            ],
+        );
+        assert_eq!(Metrics::from_dict(&doc, &f).width(87), 0.5, "/Widths go by code");
     }
 
     #[test]
