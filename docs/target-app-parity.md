@@ -1,7 +1,8 @@
 # PdfCraft parity with Adobe Acrobat Pro
 
 > **Last reviewed:** 2026-10-20 · **Last updated:** 2026-10-20 · **Change:** minor (M12 #3673: Character encoding CJK mapping routes corrected; scores and estimates unchanged)
-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-17 · **Change:** minor (C: `edit.form-content-editing` added as partial; area C and All counts by one entry; estimates unchanged) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
+
+> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-18 · **Change:** minor (C: `edit.form-content-editing` added as partial; area C and All counts by one entry; estimates unchanged) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
 
 > **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (localization ≈59% → ≈68%; weighted readiness 49.25 → 49.7 ≈ 50%) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
 
@@ -296,7 +297,7 @@ licensed OCR or AI model.
 | Date | Change | Summary |
 |---|---|---|
 | 2026-10-20 | minor | M12 #3673: the Character encoding rule accepts Identity-H/V fonts with Adobe CJK collections, or a predefined non-Identity CMap, while rejecting unknown names and foreign registries. Synthetic checker and read-only automation regressions passed after failing before the fix; per-glyph mapping validation and embedded-font extraction remain separate. Breadth, readiness and hours unchanged. |
-| 2026-10-17 | minor | C: new partial entry `edit.form-content-editing` (Ungroup for grouped Form artwork): C 61 → 62 features, 7 → 8 partial, breadth 53.3% → 53.2%; All 808 → 809, 74 → 75 partial, breadth unchanged at 56.9%. Only this entry's effect is applied: the table already lagged the checklist, which `cargo xtask parity` now counts as 816 features, 437 shipped, 94 partial. Ready and hours unchanged. |
+| 2026-10-18 | minor | C: new partial entry `edit.form-content-editing` (Ungroup for grouped Form artwork): C 61 → 62 features, 7 → 8 partial, breadth 53.3% → 53.2%; All 808 → 809, 74 → 75 partial, breadth unchanged at 56.9%. Only this entry's effect is applied: the table already lagged the checklist, which `cargo xtask parity` now counts as 816 features, 437 shipped, 94 partial. Ready and hours unchanged. |
 | 2026-10-12 | minor | Exclusive image crops resize with their pixels across nested states, intervening operators and content streams; shared clips remain fixed. Synthetic engine/tool regressions and private image save/reopen checks; estimates unchanged. |
 | 2026-10-11 | minor | Web printing shipped (gap 4): Hardware, Platforms and L Print text updated. Text only: scores, readiness and hours not re-judged |
 | 2026-10-11 | minor | Contributor fork: document-font selection and subset completion, CFF, style ranges, contextual/bidi save/reopen and all-page Chinese keyboard acceptance; curve/hole hit testing (shared clips stay fixed, as on main). Scope remains bounded; percentages unchanged |
