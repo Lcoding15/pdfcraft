@@ -340,7 +340,7 @@ pub fn ungroup_form(doc: &mut Document, page: usize, index: usize) -> Result<(),
     let closing = closing_ops(&parsed.ops)?;
 
     // The `Do` among the page's streams joined, as the image edits index it.
-    let p_streams = crate::images::content_streams(doc, &p.dict);
+    let p_streams = crate::text::content_streams(doc, &p.dict)?;
     let pieces = Pieces::join(&p_streams.iter().map(|(_, d)| d.as_slice()).collect::<Vec<_>>());
     let page_ops = pieces.parse().ops;
     let target = image.op;
