@@ -50,6 +50,9 @@ pub struct RecentTabs {
     order: Vec<TabKey>,
     /// The order of the cycle in progress, fixed at its first step while Ctrl is held.
     cycle: Option<Vec<TabKey>>,
+    /// Whether Ctrl was held at the last [`Self::note`]: without it every step is a cycle of its
+    /// own, even two in one frame.
+    held: bool,
 }
 
 impl RecentTabs {
@@ -57,6 +60,7 @@ impl RecentTabs {
     /// screen, and whether Ctrl is held. Outside a cycle, the tab showing becomes the most
     /// recent; a cycle ends when Ctrl is let go, and the tab it ended on becomes the most recent.
     pub fn note(&mut self, showing: Option<TabKey>, open: &[TabKey], held: bool) {
+        self.held = held;
         if held && self.cycle.is_some() {
             return;
         }
@@ -72,6 +76,10 @@ impl RecentTabs {
     /// first step starts a cycle (from Home, Next tab goes to the most recent tab). `None` when
     /// no tab is open.
     pub fn step(&mut self, showing: Option<TabKey>, open: &[TabKey], forward: bool) -> Option<TabKey> {
+        // Without Ctrl the tab showing is the most recent now, though no frame has noted it yet.
+        if !self.held {
+            self.note(showing, open, false);
+        }
         let order = &self.order;
         let tabs = self.cycle.get_or_insert_with(|| order.clone());
         // A tab closed during the cycle drops out of it; one opened during it comes last.
@@ -224,6 +232,18 @@ mod tests {
             visited.push(showing);
         }
         assert_eq!(visited, [doc(2), doc(3), doc(2)]);
+    }
+
+    /// CodeRabbit on #4553: two presses without Ctrl before the next frame (the automation tools
+    /// run commands back to back) are two cycles too, so the second goes back.
+    #[test]
+    fn without_ctrl_two_presses_in_one_frame_go_back_and_forth() {
+        let open = [doc(1), doc(2), doc(3)];
+        let mut r = RecentTabs::default();
+        show(&mut r, &open, &[doc(1), doc(2), doc(3)]);
+        let first = r.step(Some(doc(3)), &open, true).unwrap();
+        assert_eq!(first, doc(2));
+        assert_eq!(r.step(Some(first), &open, true), Some(doc(3)), "back to the tab shown before");
     }
 
     #[test]
