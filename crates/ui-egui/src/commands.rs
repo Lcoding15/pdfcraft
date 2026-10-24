@@ -7,6 +7,7 @@
 use pdfcraft_engine::Edit;
 use pdfcraft_engine::commands::{self, COMMANDS, CommandSpec, Shortcut};
 
+use crate::tab_cycle::TabKey;
 use crate::{
     Dialog, Mode, PdfCraftApp, PropsTab, RightPanel, SaveTarget,
     theme::{ThemeKind, ThemePreference},
@@ -706,6 +707,19 @@ impl PdfCraftApp {
     /// end (#1542). The Combine files tab, when open, comes after the documents. From Home the
     /// next tab is the first and the previous one the last.
     fn step_tab(&mut self, forward: bool) {
+        if self.tab_cycle == crate::tab_cycle::TabCycle::Recent {
+            let (shown, open) = (self.shown_tab(), self.tab_keys());
+            match self.recent_tabs.step(shown, &open, forward) {
+                Some(TabKey::Doc(id)) => {
+                    if let Some(i) = self.views.iter().position(|v| v.id == id) {
+                        self.active = Some(i);
+                    }
+                }
+                Some(TabKey::Combine) => self.open_combine_tab(),
+                None => {}
+            }
+            return;
+        }
         let count = self.views.len() + usize::from(self.combine_tab.open);
         let current = if self.combine_showing() { Some(self.views.len()) } else { self.active };
         let Some(next) = tab_after(current, count, forward) else { return };
@@ -714,6 +728,26 @@ impl PdfCraftApp {
         } else {
             self.open_combine_tab();
         }
+    }
+
+    /// The open tabs in their order on screen: the documents, then Combine files when open.
+    fn tab_keys(&self) -> Vec<TabKey> {
+        self.views.iter().map(|v| TabKey::Doc(v.id)).chain(self.combine_tab.open.then_some(TabKey::Combine)).collect()
+    }
+
+    /// The tab showing; `None` is Home.
+    fn shown_tab(&self) -> Option<TabKey> {
+        if self.combine_showing() {
+            return Some(TabKey::Combine);
+        }
+        self.active.and_then(|i| self.views.get(i)).map(|v| TabKey::Doc(v.id))
+    }
+
+    /// Keep the tabs most recently shown first, for Next tab and Previous tab in that order
+    /// (#2063). Ctrl held keeps a cycle going (⌃ on macOS, where ⌃Tab is the shortcut).
+    pub(crate) fn note_shown_tab(&mut self, ctx: &egui::Context) {
+        let (shown, open, held) = (self.shown_tab(), self.tab_keys(), ctx.input(|i| i.modifiers.ctrl));
+        self.recent_tabs.note(shown, &open, held);
     }
 
     /// Run the registered keyboard shortcuts (more specific combinations first).

@@ -144,6 +144,7 @@ pub mod scroll_speed;
 #[cfg(not(target_arch = "wasm32"))]
 mod system_fonts;
 mod tab_context;
+pub mod tab_cycle;
 pub mod theme;
 pub mod ui_scale;
 pub mod updates;
@@ -674,6 +675,10 @@ pub struct PdfCraftApp {
     desktop_theme_enabled: bool,
     /// How far a mouse-wheel notch scrolls.
     pub scroll_speed: scroll_speed::ScrollSpeed,
+    /// The order Next tab and Previous tab go through the tabs (#2063).
+    pub tab_cycle: tab_cycle::TabCycle,
+    /// The tabs most recently shown first, for [`tab_cycle::TabCycle::Recent`].
+    pub(crate) recent_tabs: tab_cycle::RecentTabs,
     /// Preferences ▸ Animation effects: on, off, or as the system's animation setting says.
     pub animation_effects: motion::AnimationEffects,
     /// Whether the system asked for no animations, and how the desktop app asks it.
@@ -1110,6 +1115,8 @@ impl PdfCraftApp {
             #[cfg(target_os = "linux")]
             desktop_theme_enabled: false,
             scroll_speed: scroll_speed::ScrollSpeed::default(),
+            tab_cycle: tab_cycle::TabCycle::default(),
+            recent_tabs: tab_cycle::RecentTabs::default(),
             animation_effects: motion::AnimationEffects::default(),
             motion: motion::Motion::default(),
             language: i18n::AUTO.to_string(),
@@ -2584,6 +2591,7 @@ impl PdfCraftApp {
             "pinned_folders": self.pinned.folders,
             "theme": self.theme_preference,
             "scroll_speed": self.scroll_speed,
+            "tab_cycle": self.tab_cycle,
             "animation_effects": self.animation_effects,
             "default_mode": self.default_mode,
             "default_layout": canvas::display_token(self.view_defaults.layout, self.view_defaults.continuous),
@@ -2697,6 +2705,9 @@ impl PdfCraftApp {
         }
         if let Ok(speed) = serde_json::from_value::<scroll_speed::ScrollSpeed>(v["scroll_speed"].clone()) {
             self.scroll_speed = speed;
+        }
+        if let Ok(cycle) = serde_json::from_value::<tab_cycle::TabCycle>(v["tab_cycle"].clone()) {
+            self.tab_cycle = cycle;
         }
         if let Ok(effects) = serde_json::from_value::<motion::AnimationEffects>(v["animation_effects"].clone()) {
             self.animation_effects = effects;
@@ -2860,6 +2871,9 @@ impl PdfCraftApp {
             }
             ("scroll_speed", _) => {
                 self.scroll_speed = scroll_speed::ScrollSpeed::parse(value).ok_or("scroll_speed must be slow, normal, or fast")?;
+            }
+            ("tab_cycle", _) => {
+                self.tab_cycle = tab_cycle::TabCycle::parse(value).ok_or("tab_cycle must be tabs or recent")?;
             }
             ("animation_effects", _) => {
                 self.animation_effects = motion::AnimationEffects::parse(value).ok_or("animation_effects must be system, on, or off")?;
@@ -3208,6 +3222,9 @@ impl PdfCraftApp {
 
     fn shortcuts(&mut self, ctx: &egui::Context) {
         use egui::Key;
+        // Every frame, modal or not: a tab shown by a click or a newly opened file is the most
+        // recent one, and a Ctrl+Tab cycle ends when Ctrl is let go.
+        self.note_shown_tab(ctx);
         let pasted = self.paste_key_released(ctx);
         // "Save changes?" is modal: its keys are its own (⌘D is Don't save there, not Document
         // properties; Escape cancels it rather than clearing a selection), and nothing may run
