@@ -199,6 +199,8 @@ Ranked; detail and the full milestone table in [docs/roadmap.md](docs/roadmap.md
 
 ## Progress log
 
+- **2026-10-24 (M14, #4253):** The annotation quick bar remembers Keep tool selected across restarts, including unpinning. Old and malformed settings keep safe defaults; the opt-in UI control channel reads and changes the same preference. Estimates unchanged.
+
 - **2026-10-23 (M4, #3923):** A recovered document's original path is only a suggestion: the first Save after recovering opens Save As at that path instead of writing it, since anyone who can write the recovery folder (a shared portable `PdfCraftData`, for example) can name any file in a sidecar. The file chosen is the document's file from then on. Sidecars are read through a 64 KiB cap; a longer one is not read, and its snapshot recovers without metadata. Estimates unchanged.
 - **2026-10-23 (M7, #4280):** Edit text names each standard stand-in font after its face (`PCEdTimesBold`, ...) instead of one shared `PCEdHelv`. Rewriting a bold paragraph whose subset lacks an accent no longer repoints the paragraphs set earlier in a regular stand-in at Times-Bold, and the editor's frame stays on the paragraph being edited. Pages saved by older builds keep their shared name and are not repaired. Estimates unchanged.
 - **2026-10-23 (M8, #3205 follow-up):** Phone-pattern redaction matches complete labelled Italian geographic numbers such as `Tel. +39 0426/123456`, with synthetic matcher and mark/apply/save/reopen coverage; unlabelled international slash numbers remain unsupported.
