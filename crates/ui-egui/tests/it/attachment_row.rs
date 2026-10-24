@@ -165,6 +165,23 @@ fn the_row_buttons_still_take_their_own_clicks() {
     assert_eq!(h.state().views.len(), 2, "the Open button");
 }
 
+/// CodeRabbit on #4513: a right-click on one of a row's buttons opens that row's menu too, as a
+/// right-click anywhere on the row does.
+#[test]
+fn a_right_click_on_a_row_button_opens_the_row_menu() {
+    let mut h = harness();
+    let count = |h: &Harness<'static, PdfCraftApp>, label: &str| h.query_all_by_label(label).count();
+    // inner.pdf's row comes first: its Save button is the first one.
+    let at = h.get_all_by_label("Save attachment…").next().expect("inner.pdf's Save button").rect().center();
+    h.hover_at(at);
+    h.run_steps(1);
+    h.event(egui::Event::PointerButton { pos: at, button: egui::PointerButton::Secondary, pressed: true, modifiers: Default::default() });
+    h.event(egui::Event::PointerButton { pos: at, button: egui::PointerButton::Secondary, pressed: false, modifiers: Default::default() });
+    h.run_steps(2);
+    assert_eq!(count(&h, "Open in a new tab"), 2, "inner.pdf's menu, with Open, is open");
+    assert_eq!(count(&h, "Save attachment…"), 3);
+}
+
 /// Where the attachment named `label` shows in the panel: the lowest text with that name, below
 /// a tab of the same name once the attachment is open.
 fn row_name(h: &Harness<'static, PdfCraftApp>, label: &str) -> egui::Pos2 {

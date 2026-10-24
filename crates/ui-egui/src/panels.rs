@@ -904,6 +904,7 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             };
                             // The whole row answers a double-click and a right-click (#3466), below
                             // its buttons, which still take their own clicks.
+                            let mut buttons: Vec<egui::Response> = Vec::new();
                             let row = ui.scope_builder(egui::UiBuilder::new().sense(Sense::click()), |ui| {
                                 egui::Frame::NONE.inner_margin(egui::Margin::symmetric(4, 6)).show(ui, |ui| {
                                     ui.horizontal(|ui| {
@@ -930,16 +931,24 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                             );
                                         });
                                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                                            if icons::button(ui, "file-down", 28.0, false, tl!("Save attachment…")).clicked() {
+                                            let save = icons::button(ui, "file-down", 28.0, false, tl!("Save attachment…"));
+                                            if save.clicked() {
                                                 attachment_action = Some((ai, false));
                                             }
-                                            if is_pdf && icons::button(ui, "file-input", 28.0, false, tl!("Open in a new tab")).clicked() {
-                                                attachment_action = Some((ai, true));
+                                            buttons.push(save);
+                                            if is_pdf {
+                                                let open = icons::button(ui, "file-input", 28.0, false, tl!("Open in a new tab"));
+                                                if open.clicked() {
+                                                    attachment_action = Some((ai, true));
+                                                }
+                                                buttons.push(open);
                                             }
-                                            if let Some(key) = deletable
-                                                && icons::button(ui, "trash-2", 28.0, false, tl!("Delete attachment")).clicked()
-                                            {
-                                                panel_edit = Some(pdfcraft_engine::Edit::DeleteAttachment { key: key.clone() });
+                                            if let Some(key) = deletable {
+                                                let delete = icons::button(ui, "trash-2", 28.0, false, tl!("Delete attachment"));
+                                                if delete.clicked() {
+                                                    panel_edit = Some(pdfcraft_engine::Edit::DeleteAttachment { key: key.clone() });
+                                                }
+                                                buttons.push(delete);
                                             }
                                         });
                                     });
@@ -950,7 +959,10 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             if row.response.double_clicked() {
                                 attachment_action = Some((ai, is_pdf));
                             }
-                            row.response.context_menu(|ui| {
+                            // A right-click on one of the row's buttons is a right-click on the row:
+                            // the union keeps the row's id, so it is one menu either way.
+                            let menu = buttons.into_iter().fold(row.response.clone(), |row, button| row | button);
+                            menu.context_menu(|ui| {
                                 if is_pdf && ui.button(tl!("Open in a new tab")).clicked() {
                                     attachment_action = Some((ai, true));
                                     ui.close();
