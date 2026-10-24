@@ -210,10 +210,10 @@ impl RecoveryStore {
         let mut out = Vec::new();
         for entry in dir.flatten() {
             let path = entry.path();
-            if path.extension().and_then(|e| e.to_str()) != Some("pdf") || !entry.file_type().is_ok_and(|t| t.is_file()) {
+            if path.extension().and_then(std::ffi::OsStr::to_str) != Some("pdf") || !entry.file_type().is_ok_and(|t| t.is_file()) {
                 continue;
             }
-            let Some(key) = path.file_stem().and_then(|s| s.to_str()) else { continue };
+            let Some(key) = path.file_stem().and_then(std::ffi::OsStr::to_str) else { continue };
             let meta = read_meta(&path.with_extension("json"))
                 .and_then(|m| if m.key == key { Ok(m) } else { Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "snapshot key mismatch")) });
             out.push(meta.unwrap_or_else(|e| {
@@ -269,7 +269,7 @@ impl RecoveryStore {
         for entry in dir.flatten() {
             let path = entry.path();
             // Only sidecars whose PDF is gone: they hold no document content.
-            if path.extension().and_then(|e| e.to_str()) == Some("json")
+            if path.extension().and_then(std::ffi::OsStr::to_str) == Some("json")
                 && entry.file_type().is_ok_and(|t| t.is_file())
                 && !path.with_extension("pdf").exists()
             {
