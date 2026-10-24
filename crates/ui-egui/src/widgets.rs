@@ -270,14 +270,43 @@ fn drag_across(ui: &egui::Ui, response: Response, checked: &mut bool) -> Respons
         ctx.data_mut(|d| d.remove::<(egui::Id, bool)>(drag_target_id()));
         return response;
     }
+    // The way the pointer came this frame, not only where it is: a fast drag jumps over boxes
+    // between two frames. The box counts where that way first meets it.
     let over = ctx
-        .input(|i| i.pointer.latest_pos())
-        .is_some_and(|p| response.rect.contains(p) && ui.clip_rect().contains(p) && ctx.layer_id_at(p) == Some(response.layer_id));
+        .input(|i| i.pointer.latest_pos().map(|p| (p - i.pointer.delta(), p)))
+        .and_then(|(from, to)| segment_entry(response.rect, from, to))
+        .is_some_and(|p| ui.clip_rect().contains(p) && ctx.layer_id_at(p) == Some(response.layer_id));
     if over && *checked != target {
         *checked = target;
         response.mark_changed();
     }
     response
+}
+
+/// Where the segment from `from` to `to` first enters `rect` (`from` itself when it starts
+/// inside); `None` when it misses. Non-finite points miss.
+fn segment_entry(rect: Rect, from: egui::Pos2, to: egui::Pos2) -> Option<egui::Pos2> {
+    if !(from.x.is_finite() && from.y.is_finite() && to.x.is_finite() && to.y.is_finite()) {
+        return None;
+    }
+    // Liang–Barsky: clip the parameter range [0, 1] against each side in turn.
+    let d = to - from;
+    let (mut t0, mut t1) = (0.0f32, 1.0f32);
+    for (p, q) in [(-d.x, from.x - rect.min.x), (d.x, rect.max.x - from.x), (-d.y, from.y - rect.min.y), (d.y, rect.max.y - from.y)] {
+        if p == 0.0 {
+            if q < 0.0 {
+                return None;
+            }
+        } else {
+            let t = q / p;
+            if p < 0.0 {
+                t0 = t0.max(t);
+            } else {
+                t1 = t1.min(t);
+            }
+        }
+    }
+    (t0 <= t1).then(|| from + d * t0)
 }
 
 /// [`checkbox`] without a label: the selection box on Organize Pages thumbnails. It takes clicks
@@ -975,6 +1004,35 @@ mod drag_across_tests {
         frame(&ctx, &mut state, None, vec![button(at(1), false)]);
         frame(&ctx, &mut state, None, vec![]);
         assert_eq!(state, [true, false, false, false], "the drag up cleared the boxes it went over and stopped there");
+    }
+
+    /// The segment test behind a fast drag: where the way first meets the box, nothing when it
+    /// passes by, and nothing for a non-finite point.
+    #[test]
+    fn segment_entry_finds_where_the_way_meets_the_box() {
+        let r = Rect::from_min_max(Pos2::new(10.0, 10.0), Pos2::new(20.0, 20.0));
+        assert_eq!(segment_entry(r, Pos2::new(15.0, 0.0), Pos2::new(15.0, 40.0)), Some(Pos2::new(15.0, 10.0)), "through it");
+        assert_eq!(segment_entry(r, Pos2::new(12.0, 12.0), Pos2::new(50.0, 50.0)), Some(Pos2::new(12.0, 12.0)), "starting inside");
+        assert_eq!(segment_entry(r, Pos2::new(0.0, 0.0), Pos2::new(0.0, 40.0)), None, "beside it");
+        assert_eq!(segment_entry(r, Pos2::new(15.0, 0.0), Pos2::new(15.0, 5.0)), None, "short of it");
+        assert_eq!(segment_entry(r, Pos2::new(f32::NAN, 0.0), Pos2::new(15.0, 15.0)), None);
+    }
+
+    /// CodeRabbit on #4552: a fast drag that jumps over boxes between two frames sets them too,
+    /// not only the box the pointer lands on.
+    #[test]
+    fn a_fast_drag_sets_the_boxes_it_jumps_over() {
+        let ctx = egui::Context::default();
+        let mut state = [false, false, false, false, false];
+        let (rects, _) = frame(&ctx, &mut state, None, vec![]);
+        let at = |i: usize| rects[i].left_center() + vec2(6.0, 0.0);
+        frame(&ctx, &mut state, None, vec![Event::PointerMoved(at(0)), button(at(0), true)]);
+        // Far enough in one frame to start the drag, then straight to the fourth row.
+        frame(&ctx, &mut state, None, vec![Event::PointerMoved(at(0) + vec2(20.0, 0.0))]);
+        frame(&ctx, &mut state, None, vec![Event::PointerMoved(at(3))]);
+        frame(&ctx, &mut state, None, vec![button(at(3), false)]);
+        frame(&ctx, &mut state, None, vec![]);
+        assert_eq!(state, [true, true, true, true, false]);
     }
 
     /// A press that drags and comes back to its own box before the release toggles that box
