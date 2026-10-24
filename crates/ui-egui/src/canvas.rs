@@ -3218,6 +3218,8 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         || app.pending_remote_link.is_some()
         || app.updates.open;
     let mut clicked_link: Option<LinkTarget> = None;
+    // A click a page's render-warning note took (its close button or the note itself).
+    let mut note_clicked = false;
     let mut remote_open: Option<(pdfcraft_engine::DocId, String, pdfcraft_render::RemoteDestination)> = None;
     let mut canvas_action: Option<comments::CanvasAction> = None;
     let mut field_menu: Option<FieldMenu> = None;
@@ -3470,10 +3472,12 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             if view.show_page_gaps {
                 painter.rect_stroke(r, CornerRadius::ZERO, Stroke::new(0.5, t.border.gamma_multiply(0.8)), egui::StrokeKind::Outside);
             }
-            if let Some(warnings) = view.render_warning_note(i)
-                && paint_render_warnings(ui, painter, r.intersect(visible), i, warnings, &t)
-            {
-                view.dismiss_render_warning_note(i);
+            if let Some(warnings) = view.render_warning_note(i) {
+                let note = paint_render_warnings(ui, painter, r.intersect(visible), i, warnings, &t);
+                note_clicked |= note.clicked;
+                if note.closed {
+                    view.dismiss_render_warning_note(i);
+                }
             }
 
             // Comments: tools, selection, moving and resizing come before text selection.
@@ -4437,7 +4441,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     // do a link followed meanwhile and leaving full screen; a double-click elsewhere still turns
     // once.
     let now = ui.input(|i| i.time);
-    if present_click && clicked_link.is_none() && view.selection.is_none() && view.clicks < 2 {
+    if present_click && clicked_link.is_none() && !note_clicked && view.selection.is_none() && view.clicks < 2 {
         let delay = ui.ctx().options(|o| o.input_options.max_double_click_delay);
         view.present_turn = Some((now + delay, !present_back));
     }
@@ -5147,8 +5151,7 @@ fn notice_bar(ui: &mut egui::Ui, t: &Tokens, icon: &str, icon_color: Color32, te
 
 /// The note on a page the renderer drew only in part or approximately (#4340): an alert icon, one
 /// line per warning and a close button, in the top-right corner of the part of the page on screen
-/// (the quick bar floats at the left). Left out when that part is too small to hold it. Returns
-/// whether the close button was clicked.
+/// (the quick bar floats at the left). Left out when that part is too small to hold it.
 fn paint_render_warnings(
     ui: &egui::Ui,
     painter: &egui::Painter,
@@ -5156,12 +5159,12 @@ fn paint_render_warnings(
     page: usize,
     warnings: &[pdfcraft_render::RenderWarning],
     t: &Tokens,
-) -> bool {
+) -> NoteClick {
     const ICON: f32 = 14.0;
     const PAD: f32 = 8.0;
     const CLOSE: f32 = 20.0;
     if !(shown.width() >= 200.0 && shown.height() >= 48.0) {
-        return false;
+        return NoteClick::default();
     }
     let text = warnings.iter().map(|w| render_warning_text(*w)).collect::<Vec<_>>().join("\n");
     // At most 320 points wide, and never wider than the page leaves room for.
@@ -5170,9 +5173,9 @@ fn paint_render_warnings(
     let size = vec2(ICON + galley.size().x + CLOSE, galley.size().y.max(CLOSE)) + vec2(4.0 * PAD, 2.0 * PAD);
     // Whole or not at all: a note cut off at the bottom of the page on screen would hide part of
     // what it says.
-    let Some(note) = warning_note_rect(shown, size, PAD) else { return false };
+    let Some(note) = warning_note_rect(shown, size, PAD) else { return NoteClick::default() };
     // The note is the reader's, not the page's: a press on it doesn't reach the page's tools.
-    ui.interact(note, ui.id().with(("render-warning-note", page)), Sense::click());
+    let body = ui.interact(note, ui.id().with(("render-warning-note", page)), Sense::click());
     painter.rect_filled(note, CornerRadius::same(t.radius), t.card);
     painter.rect_stroke(note, CornerRadius::same(t.radius), Stroke::new(1.0, t.border), egui::StrokeKind::Inside);
     icons::paint(ui, Rect::from_min_size(note.min + vec2(PAD, PAD), vec2(ICON, ICON)), "triangle-alert", ICON, t.accent_text);
@@ -5186,7 +5189,16 @@ fn paint_render_warnings(
         painter.rect_filled(close, CornerRadius::same(t.radius), if resp.is_pointer_button_down_on() { t.pressed } else { t.hover });
     }
     icons::paint(ui, close, "x", 14.0, t.icon);
-    resp.clicked()
+    NoteClick { clicked: body.clicked() || resp.clicked(), closed: resp.clicked() }
+}
+
+/// What a click did to a page's render-warning note this frame.
+#[derive(Default)]
+struct NoteClick {
+    /// The note took a click, so it isn't a click on the page (full screen doesn't turn).
+    clicked: bool,
+    /// Its close button was clicked.
+    closed: bool,
 }
 
 /// Where a note of `size` goes in the top-right corner of `shown`, `pad` in from its edges; `None`

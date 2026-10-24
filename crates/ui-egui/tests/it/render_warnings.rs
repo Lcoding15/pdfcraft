@@ -1,6 +1,7 @@
 //! A page the renderer draws only in part or approximately is marked as such in the viewer, not
 //! shown as if it were complete (#4340).
 
+use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use pdfcraft_render::RenderWarning;
@@ -73,4 +74,37 @@ fn the_warning_note_closes_with_its_button() {
     h.run_steps(2);
     assert_eq!(h.state().views[0].render_warning_note(0), None, "the note is closed");
     assert_eq!(h.state().views[0].page_warnings(), vec![(0, &[RenderWarning::ColourFallback][..])], "the page is still reported");
+}
+
+/// `devicen_pdf` with a second page drawn the same way, for full screen to have a page to turn to.
+fn two_page_devicen_pdf(program: &str) -> Vec<u8> {
+    let one = String::from_utf8(devicen_pdf(program)).expect("ASCII");
+    let page = one.split("3 0 obj ").nth(1).and_then(|r| r.split(" endobj").next()).expect("page 1");
+    one.replace("/Kids [3 0 R] /Count 1", "/Kids [3 0 R 6 0 R] /Count 2").replace("trailer", &format!("6 0 obj {page} endobj\ntrailer")).into_bytes()
+}
+
+/// CodeRabbit on #4501: in full screen a click turns the page unless it did something else;
+/// closing the note is something else.
+#[test]
+fn closing_the_note_in_full_screen_does_not_turn_the_page() {
+    let mut h = rendered(two_page_devicen_pdf("{ pop pop pop }"));
+    h.key_press_modifiers(Modifiers::COMMAND, Key::L);
+    h.run_steps(6);
+    assert!(h.state().full_screen);
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+    while h.state().views[0].render_warning_note(0).is_none() || h.query_all_by_label("Dismiss").next().is_none() {
+        assert!(std::time::Instant::now() < deadline, "the note in full screen");
+        h.run_steps(2);
+        std::thread::sleep(std::time::Duration::from_millis(5));
+    }
+    let close = h.get_all_by_label("Dismiss").max_by(|a, b| a.rect().min.y.total_cmp(&b.rect().min.y)).expect("the note's close button");
+    let at = close.rect().center();
+    h.hover_at(at);
+    h.run_steps(1);
+    for pressed in [true, false] {
+        h.event(egui::Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed, modifiers: Modifiers::NONE });
+    }
+    h.run_steps(30);
+    assert_eq!(h.state().views[0].render_warning_note(0), None, "the note is closed");
+    assert_eq!(h.state().views[0].current, 0, "and the page stays");
 }
