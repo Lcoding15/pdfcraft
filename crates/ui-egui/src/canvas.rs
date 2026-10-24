@@ -439,6 +439,9 @@ pub struct DocView {
     /// Pages the renderer drew only in part or approximately, with what it reported for them
     /// (#4340). Shown on the page until the page changes.
     warnings: HashMap<usize, Vec<pdfcraft_render::RenderWarning>>,
+    /// Pages whose warning note the reader closed. The page is still reported as incomplete
+    /// (`page_warnings`); the note comes back once the page is drawn again after a change.
+    warnings_dismissed: HashSet<usize>,
     /// When each still-missing page was first shown, to flag unusually slow renders.
     waiting_since: HashMap<usize, f64>,
     thumbs: HashMap<usize, PageTex>,
@@ -747,6 +750,19 @@ impl DocView {
         v
     }
 
+    /// The warnings shown in `page`'s note: none once the reader has closed it.
+    pub fn render_warning_note(&self, page: usize) -> Option<&[pdfcraft_render::RenderWarning]> {
+        if self.warnings_dismissed.contains(&page) {
+            return None;
+        }
+        self.warnings.get(&page).map(Vec::as_slice).filter(|w| !w.is_empty())
+    }
+
+    /// Closes `page`'s warning note, as its close button does.
+    pub fn dismiss_render_warning_note(&mut self, page: usize) {
+        self.warnings_dismissed.insert(page);
+    }
+
     /// A view of a newly opened document, shown as `defaults` say. Opening a file then applies
     /// any layout or zoom the PDF itself asks for.
     pub fn new(id: DocId, info: &DocInfo, defaults: ViewDefaults) -> Self {
@@ -781,6 +797,7 @@ impl DocView {
             pages: HashMap::new(),
             errors: HashMap::new(),
             warnings: HashMap::new(),
+            warnings_dismissed: HashSet::new(),
             waiting_since: HashMap::new(),
             thumbs: HashMap::new(),
             thumb_demand: HashMap::new(),
@@ -1042,6 +1059,7 @@ impl DocView {
         self.text_failed.clear();
         self.errors.clear();
         self.warnings.clear();
+        self.warnings_dismissed.clear();
         self.slow_pages.clear();
         self.waiting_since.clear();
         self.last_queue.clear();
@@ -1082,6 +1100,7 @@ impl DocView {
         self.text_failed.remove(&page);
         self.errors.remove(&page);
         self.warnings.remove(&page);
+        self.warnings_dismissed.remove(&page);
         self.last_queue.clear();
         if self.selection.is_some_and(|s| s.page == page) {
             self.selection = None;
@@ -3450,8 +3469,10 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             if view.show_page_gaps {
                 painter.rect_stroke(r, CornerRadius::ZERO, Stroke::new(0.5, t.border.gamma_multiply(0.8)), egui::StrokeKind::Outside);
             }
-            if let Some(warnings) = view.warnings.get(&i) {
-                paint_render_warnings(ui, painter, r.intersect(visible), warnings, &t);
+            if let Some(warnings) = view.render_warning_note(i)
+                && paint_render_warnings(ui, painter, r.intersect(visible), i, warnings, &t)
+            {
+                view.dismiss_render_warning_note(i);
             }
 
             // Comments: tools, selection, moving and resizing come before text selection.
@@ -5123,25 +5144,44 @@ fn notice_bar(ui: &mut egui::Ui, t: &Tokens, icon: &str, icon_color: Color32, te
     });
 }
 
-/// The note on a page the renderer drew only in part or approximately (#4340): an alert icon and
-/// one line per warning, in the top-right corner of the part of the page on screen (the quick
-/// bar floats at the left). Left out when that part is too small to hold it.
-fn paint_render_warnings(ui: &egui::Ui, painter: &egui::Painter, shown: Rect, warnings: &[pdfcraft_render::RenderWarning], t: &Tokens) {
+/// The note on a page the renderer drew only in part or approximately (#4340): an alert icon, one
+/// line per warning and a close button, in the top-right corner of the part of the page on screen
+/// (the quick bar floats at the left). Left out when that part is too small to hold it. Returns
+/// whether the close button was clicked.
+fn paint_render_warnings(
+    ui: &egui::Ui,
+    painter: &egui::Painter,
+    shown: Rect,
+    page: usize,
+    warnings: &[pdfcraft_render::RenderWarning],
+    t: &Tokens,
+) -> bool {
     const ICON: f32 = 14.0;
     const PAD: f32 = 8.0;
-    if !(shown.width() >= 160.0 && shown.height() >= 48.0) {
-        return;
+    const CLOSE: f32 = 20.0;
+    if !(shown.width() >= 200.0 && shown.height() >= 48.0) {
+        return false;
     }
     let text = warnings.iter().map(|w| render_warning_text(*w)).collect::<Vec<_>>().join("\n");
     // At most 320 points wide, and never wider than the page leaves room for.
-    let wrap = (shown.width() - 4.0 * PAD - ICON).clamp(80.0, 320.0);
+    let wrap = (shown.width() - 5.0 * PAD - ICON - CLOSE).clamp(80.0, 320.0);
     let galley = ui.fonts_mut(|f| f.layout(text, theme::regular(12.0), t.text, wrap));
-    let size = vec2(ICON + galley.size().x, galley.size().y.max(ICON)) + vec2(3.0 * PAD, 2.0 * PAD);
+    let size = vec2(ICON + galley.size().x + CLOSE, galley.size().y.max(CLOSE)) + vec2(4.0 * PAD, 2.0 * PAD);
     let note = Rect::from_min_size(pos2(shown.right() - PAD - size.x, shown.top() + PAD), size);
+    // The note is the reader's, not the page's: a press on it doesn't reach the page's tools.
+    ui.interact(note, ui.id().with(("render-warning-note", page)), Sense::click());
     painter.rect_filled(note, CornerRadius::same(t.radius), t.card);
     painter.rect_stroke(note, CornerRadius::same(t.radius), Stroke::new(1.0, t.border), egui::StrokeKind::Inside);
     icons::paint(ui, Rect::from_min_size(note.min + vec2(PAD, PAD), vec2(ICON, ICON)), "triangle-alert", ICON, t.accent_text);
     painter.galley(note.min + vec2(2.0 * PAD + ICON, PAD), galley, t.text);
+    // Close, as the notice bars above the document close.
+    let close = Rect::from_min_size(pos2(note.right() - PAD - CLOSE, note.top() + PAD), vec2(CLOSE, CLOSE));
+    let resp = ui.interact(close, ui.id().with(("render-warning-close", page)), Sense::click()).on_hover_text(tl!("Dismiss"));
+    if resp.hovered() {
+        painter.rect_filled(close, CornerRadius::same(t.radius), if resp.is_pointer_button_down_on() { t.pressed } else { t.hover });
+    }
+    icons::paint(ui, close, "x", 14.0, t.icon);
+    resp.clicked()
 }
 
 /// What a render warning means for the page on screen.
@@ -6656,6 +6696,31 @@ trailer << /Root 1 0 R >>
         assert_eq!(view.page_warnings(), vec![(1, &[ContentTruncated][..])], "an edited page is drawn again before it is marked");
         view.invalidate_content();
         assert!(view.page_warnings().is_empty(), "nor are pages after an edit to the document");
+    }
+
+    /// #4340: closing a page's warning note hides the note only; the page is still reported as
+    /// incomplete, and a change to the page brings the note back once it is drawn again.
+    #[test]
+    fn a_closed_warning_note_stays_closed_until_the_page_changes() {
+        use pdfcraft_render::RenderWarning::ContentTruncated;
+        let ctx = egui::Context::default();
+        let mut view = DocView::new(DocId(1), &thumbnail_info(2), ViewDefaults::default());
+        let page = RenderRequest { page: 0, ..Default::default() };
+        let warned = || pdfcraft_render::RenderedPage { warnings: vec![ContentTruncated], ..solid_result(page, 8, 8) };
+        view.last_queue = vec![page];
+        view.receive_result(&ctx, warned());
+        assert_eq!(view.render_warning_note(0), Some(&[ContentTruncated][..]));
+
+        view.dismiss_render_warning_note(0);
+        assert_eq!(view.render_warning_note(0), None, "closed");
+        view.receive_result(&ctx, warned());
+        assert_eq!(view.render_warning_note(0), None, "a later raster of the same page doesn't reopen it");
+        assert_eq!(view.page_warnings(), vec![(0, &[ContentTruncated][..])], "automation still sees the page as incomplete");
+
+        view.page_changed(0);
+        view.last_queue = vec![page];
+        view.receive_result(&ctx, warned());
+        assert_eq!(view.render_warning_note(0), Some(&[ContentTruncated][..]), "the changed page is noted again");
     }
 
     /// A print preview carries the renderer's print bit; the bit that asks for luminance is

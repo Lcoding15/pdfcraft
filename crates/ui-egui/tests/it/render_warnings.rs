@@ -60,3 +60,14 @@ fn a_page_drawn_as_specified_is_not_marked() {
     let h = rendered(devicen_pdf("{ pop pop 0 0 0 }"));
     assert!(h.state().views[0].page_warnings().is_empty(), "{:?}", h.state().views[0].page_warnings());
 }
+
+#[test]
+fn the_warning_note_closes_with_its_button() {
+    let mut h = rendered(devicen_pdf("{ pop pop pop }"));
+    h.run_steps(2);
+    assert!(h.state().views[0].render_warning_note(0).is_some());
+    h.get_by_label("Dismiss").click();
+    h.run_steps(2);
+    assert_eq!(h.state().views[0].render_warning_note(0), None, "the note is closed");
+    assert_eq!(h.state().views[0].page_warnings(), vec![(0, &[RenderWarning::ColourFallback][..])], "the page is still reported");
+}

@@ -2792,3 +2792,7 @@ theme	Appearance	Išvaizda
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Šiandien
+
+# Render warnings on the page in the viewer (#4340) (AI-assisted, not separately native-reviewed)
+	Part of this page isn't shown: its content goes past the most PdfCraft draws for one page.	Dalis šio puslapio nerodoma: jo turinys viršija didžiausią kiekį, kurį PdfCraft nupiešia vienam puslapiui.
+	A colour on this page couldn't be computed and is shown in a fallback colour.	Šio puslapio spalvos nepavyko apskaičiuoti, todėl ji rodoma atsargine spalva.
