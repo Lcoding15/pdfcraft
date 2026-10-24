@@ -1187,6 +1187,23 @@ fn duplicating_with_new_field_names_makes_the_copy_its_own_field() {
     assert_eq!(s.get(id).unwrap().info.pages.len(), 1);
 }
 
+/// CodeRabbit on #4557: two renaming duplications in one batch each report their renames; the
+/// second no longer replaces the first's in the repair log.
+#[test]
+fn a_batch_of_renaming_duplications_reports_every_rename() {
+    let mut s = Session::new().with_clock(|| 1_700_000_000);
+    let id = s.open("a.pdf", None, Arc::new(form_with_field("Text1")), None).unwrap();
+    let dup = || Edit::DuplicatePages { pages: vec![0], at: None, field_conflicts: FieldConflicts::Rename };
+    s.apply(id, Edit::Batch { label: "Duplicate twice".into(), edits: vec![dup(), dup()] }).unwrap();
+    let doc = s.get(id).unwrap();
+    assert_eq!(doc.form.len(), 3, "{:?}", doc.form.iter().map(|f| &f.name).collect::<Vec<_>>());
+    assert!(
+        doc.repair_log().iter().any(|l| l.starts_with("duplicated pages renamed 2 form fields")),
+        "both renames are noted: {:?}",
+        doc.repair_log()
+    );
+}
+
 /// A combine reports the fields it renamed — the tool result tells callers what their scripts
 /// must call the field now — and honours a caller's choice to merge instead.
 #[test]

@@ -2549,6 +2549,17 @@ impl EditCtx {
 }
 
 /// Perform an edit on a working copy (the caller discards it on error).
+/// Whether `edit` (or a batch inside it) duplicates pages, and whether it inserts pages from a
+/// file: the two edits that can rename form fields, for the repair note's wording.
+fn renaming_edits(edit: &Edit) -> (bool, bool) {
+    match edit {
+        Edit::DuplicatePages { .. } => (true, false),
+        Edit::InsertPagesFrom { .. } => (false, true),
+        Edit::Batch { edits, .. } => edits.iter().map(renaming_edits).fold((false, false), |(d, i), (d2, i2)| (d || d2, i || i2)),
+        _ => (false, false),
+    }
+}
+
 fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> Result<(), EditError> {
     match edit {
         Edit::RotatePages { pages, degrees } => pdfcraft_organize::rotate_pages(doc, pages, *degrees)?,
@@ -2560,7 +2571,8 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         }
         Edit::SetInfo { key, value } => pdfcraft_organize::set_info(doc, key, value)?,
         Edit::DuplicatePages { pages, at, field_conflicts } => {
-            cx.renamed_fields = pdfcraft_organize::duplicate_pages_with(doc, pages, *at, *field_conflicts)?;
+            // Added to, not replaced: a batch can duplicate (or insert) more than once.
+            cx.renamed_fields.extend(pdfcraft_organize::duplicate_pages_with(doc, pages, *at, *field_conflicts)?);
         }
         Edit::ReplacePages { pages, name, bytes, src_pages } => {
             let src = open_source(name, bytes)?;
@@ -2577,7 +2589,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             // The file's bookmarks come along under one named after it, as in Combine Files.
             let title = std::path::Path::new(name).file_stem().map_or_else(|| name.clone(), |s| s.to_string_lossy().into_owned());
             let outcome = pdfcraft_organize::insert_file_pages(doc, &src, &title, &pages, *at, *field_conflicts)?;
-            cx.renamed_fields = outcome.renamed_fields;
+            cx.renamed_fields.extend(outcome.renamed_fields);
         }
         Edit::AddBookmark { parent, index, title, page, left, top } => {
             pdfcraft_organize::add_bookmark_at(doc, parent, *index, title, *page, *left, *top)?;
@@ -4013,7 +4025,11 @@ impl Session {
                 let more = if more > 0 { format!(", and {more} more") } else { String::new() };
                 format!(
                     "{} renamed {} form field{} to keep their names separate ({}{more}); scripts that refer to the old names were not rewritten",
-                    if matches!(edit, Edit::DuplicatePages { .. }) { "duplicated pages" } else { "inserted pages" },
+                    match renaming_edits(&edit) {
+                        (true, false) => "duplicated pages",
+                        (false, true) => "inserted pages",
+                        _ => "duplicated and inserted pages",
+                    },
                     renamed.len(),
                     if renamed.len() == 1 { "" } else { "s" },
                     shown.join(", ")
