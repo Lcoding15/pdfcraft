@@ -837,6 +837,7 @@ fn state_and_view_options() {
     assert_eq!(s["documents"][0]["pages"], 5);
     assert_eq!(s["active"]["page"], 1);
     assert_eq!(s["active"]["page_errors"], json!([]));
+    assert_eq!(s["active"]["page_warnings"], json!([]), "the five plain pages draw as they are written");
     ok(&mut h, &c, "ui.set", json!({ "key": "page", "value": 4 }));
     h.run_steps(3);
     assert_eq!(ok(&mut h, &c, "ui.state", json!({}))["active"]["page"], 4);

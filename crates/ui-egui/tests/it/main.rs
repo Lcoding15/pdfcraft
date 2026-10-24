@@ -65,6 +65,7 @@ mod reading_colors;
 mod recovery;
 mod redact;
 mod reload;
+mod render_warnings;
 mod signing;
 mod stamps;
 mod text_select;

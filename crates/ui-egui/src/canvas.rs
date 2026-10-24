@@ -436,6 +436,9 @@ pub struct DocView {
     pages: HashMap<usize, PageTex>,
     /// Pages the renderer could not draw, with the reason (never re-requested).
     errors: HashMap<usize, String>,
+    /// Pages the renderer drew only in part or approximately, with what it reported for them
+    /// (#4340). Shown on the page until the page changes.
+    warnings: HashMap<usize, Vec<pdfcraft_render::RenderWarning>>,
     /// When each still-missing page was first shown, to flag unusually slow renders.
     waiting_since: HashMap<usize, f64>,
     thumbs: HashMap<usize, PageTex>,
@@ -736,6 +739,14 @@ impl DocView {
         v
     }
 
+    /// Pages drawn only in part or approximately, with the renderer's warnings (for automation;
+    /// 0-based pages).
+    pub fn page_warnings(&self) -> Vec<(usize, &[pdfcraft_render::RenderWarning])> {
+        let mut v: Vec<(usize, &[pdfcraft_render::RenderWarning])> = self.warnings.iter().map(|(p, w)| (*p, w.as_slice())).collect();
+        v.sort_unstable_by_key(|(p, _)| *p);
+        v
+    }
+
     /// A view of a newly opened document, shown as `defaults` say. Opening a file then applies
     /// any layout or zoom the PDF itself asks for.
     pub fn new(id: DocId, info: &DocInfo, defaults: ViewDefaults) -> Self {
@@ -769,6 +780,7 @@ impl DocView {
             presentation: None,
             pages: HashMap::new(),
             errors: HashMap::new(),
+            warnings: HashMap::new(),
             waiting_since: HashMap::new(),
             thumbs: HashMap::new(),
             thumb_demand: HashMap::new(),
@@ -1029,6 +1041,7 @@ impl DocView {
         self.texts.clear();
         self.text_failed.clear();
         self.errors.clear();
+        self.warnings.clear();
         self.slow_pages.clear();
         self.waiting_since.clear();
         self.last_queue.clear();
@@ -1068,6 +1081,7 @@ impl DocView {
         self.texts.remove(&page);
         self.text_failed.remove(&page);
         self.errors.remove(&page);
+        self.warnings.remove(&page);
         self.last_queue.clear();
         if self.selection.is_some_and(|s| s.page == page) {
             self.selection = None;
@@ -2142,6 +2156,16 @@ impl DocView {
             log::warn!("page {}: {e}", r.request.page + 1);
             self.errors.insert(r.request.page, e);
             return 0;
+        }
+        // The page's own rasters and tiles say whether what it shows is complete. Thumbnails,
+        // the organize grid and print previews are other pictures of it and leave this alone.
+        if r.request.tag & (THUMB_TAG | GRID_TAG | PRINT_TAG) == 0 && !r.warnings.is_empty() {
+            let noted = self.warnings.entry(r.request.page).or_default();
+            for w in &r.warnings {
+                if !noted.contains(w) {
+                    noted.push(*w);
+                }
+            }
         }
         // Even current demand may have been sized with obsolete geometry or a different
         // device limit. Check before cache eviction, conversion and every upload path.
@@ -3425,6 +3449,9 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             }
             if view.show_page_gaps {
                 painter.rect_stroke(r, CornerRadius::ZERO, Stroke::new(0.5, t.border.gamma_multiply(0.8)), egui::StrokeKind::Outside);
+            }
+            if let Some(warnings) = view.warnings.get(&i) {
+                paint_render_warnings(ui, painter, r.intersect(visible), warnings, &t);
             }
 
             // Comments: tools, selection, moving and resizing come before text selection.
@@ -5096,6 +5123,36 @@ fn notice_bar(ui: &mut egui::Ui, t: &Tokens, icon: &str, icon_color: Color32, te
     });
 }
 
+/// The note on a page the renderer drew only in part or approximately (#4340): an alert icon and
+/// one line per warning, in the top-right corner of the part of the page on screen (the quick
+/// bar floats at the left). Left out when that part is too small to hold it.
+fn paint_render_warnings(ui: &egui::Ui, painter: &egui::Painter, shown: Rect, warnings: &[pdfcraft_render::RenderWarning], t: &Tokens) {
+    const ICON: f32 = 14.0;
+    const PAD: f32 = 8.0;
+    if !(shown.width() >= 160.0 && shown.height() >= 48.0) {
+        return;
+    }
+    let text = warnings.iter().map(|w| render_warning_text(*w)).collect::<Vec<_>>().join("\n");
+    // At most 320 points wide, and never wider than the page leaves room for.
+    let wrap = (shown.width() - 4.0 * PAD - ICON).clamp(80.0, 320.0);
+    let galley = ui.fonts_mut(|f| f.layout(text, theme::regular(12.0), t.text, wrap));
+    let size = vec2(ICON + galley.size().x, galley.size().y.max(ICON)) + vec2(3.0 * PAD, 2.0 * PAD);
+    let note = Rect::from_min_size(pos2(shown.right() - PAD - size.x, shown.top() + PAD), size);
+    painter.rect_filled(note, CornerRadius::same(t.radius), t.card);
+    painter.rect_stroke(note, CornerRadius::same(t.radius), Stroke::new(1.0, t.border), egui::StrokeKind::Inside);
+    icons::paint(ui, Rect::from_min_size(note.min + vec2(PAD, PAD), vec2(ICON, ICON)), "triangle-alert", ICON, t.accent_text);
+    painter.galley(note.min + vec2(2.0 * PAD + ICON, PAD), galley, t.text);
+}
+
+/// What a render warning means for the page on screen.
+fn render_warning_text(warning: pdfcraft_render::RenderWarning) -> &'static str {
+    use pdfcraft_render::RenderWarning;
+    match warning {
+        RenderWarning::ContentTruncated => tl!("Part of this page isn't shown: its content goes past the most PdfCraft draws for one page."),
+        RenderWarning::ColourFallback => tl!("A colour on this page couldn't be computed and is shown in a fallback colour."),
+    }
+}
+
 /// The floating quick-action bar at the left edge of the document area.
 fn quick_bar(app: &mut PdfCraftApp, area: Rect, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
@@ -6563,6 +6620,42 @@ trailer << /Root 1 0 R >>
             assert_eq!(view.receive_result(&ctx, solid_result(request, 32, 64)), 32 * 64 * 4);
             assert_eq!(texture(&view)[0].1, [32, 64], "valid results still make progress");
         }
+    }
+
+    /// #4340: a page's raster or tile with render warnings marks the page, once per kind, until
+    /// the page changes; thumbnails, grid cells and print previews don't.
+    #[test]
+    fn render_warnings_mark_the_page_until_it_changes() {
+        use pdfcraft_render::RenderWarning::{ColourFallback, ContentTruncated};
+        let ctx = egui::Context::default();
+        let mut view = DocView::new(DocId(1), &thumbnail_info(3), ViewDefaults::default());
+        let warned = |request: RenderRequest, warnings: Vec<pdfcraft_render::RenderWarning>| pdfcraft_render::RenderedPage {
+            warnings,
+            ..solid_result(request, 8, 8)
+        };
+        let page = |page: usize| RenderRequest { page, ..Default::default() };
+        let tile = RenderRequest { page: 1, tile: Some(Tile { x: 0, y: 0, w: 8, h: 8 }), ..Default::default() };
+        let others = [THUMB_TAG, GRID_TAG, PRINT_TAG].map(|tag| RenderRequest { page: 2, tag, ..Default::default() }).into_iter().collect::<Vec<_>>();
+        view.last_queue = [page(0), tile].into_iter().chain(others.iter().copied()).collect();
+
+        view.receive_result(&ctx, warned(page(0), vec![ColourFallback]));
+        view.receive_result(&ctx, warned(page(0), vec![ColourFallback, ContentTruncated]));
+        view.receive_result(&ctx, warned(tile, vec![ContentTruncated]));
+        for &request in &others {
+            view.receive_result(&ctx, warned(request, vec![ContentTruncated]));
+        }
+        assert_eq!(
+            view.page_warnings(),
+            vec![(0, &[ColourFallback, ContentTruncated][..]), (1, &[ContentTruncated][..])],
+            "each kind once; tiles count, other pictures of a page don't"
+        );
+        view.receive_result(&ctx, solid_result(page(0), 8, 8));
+        assert_eq!(view.page_warnings().len(), 2, "a later raster without warnings keeps what the content gave");
+
+        view.page_changed(0);
+        assert_eq!(view.page_warnings(), vec![(1, &[ContentTruncated][..])], "an edited page is drawn again before it is marked");
+        view.invalidate_content();
+        assert!(view.page_warnings().is_empty(), "nor are pages after an edit to the document");
     }
 
     /// A print preview carries the renderer's print bit; the bit that asks for luminance is
