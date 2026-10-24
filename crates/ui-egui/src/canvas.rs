@@ -1550,6 +1550,8 @@ impl DocView {
         self.goto = Some((page, 0.0));
         self.current = page;
         self.reset_coarse_state();
+        // A find step's match belongs to the place left, as for any other jump.
+        self.find_hold = None;
         true
     }
 
@@ -6206,6 +6208,19 @@ trailer << /Root 1 0 R >>
         // Another jump lets go of the match: the next zoom is at the pointer again.
         v.go_to_page(1);
         v.zoom_at(4.0, pos2(150.0, 50.0));
+        assert_eq!(v.zoom_anchor.map(|a| a.0), Some(0), "anchored on the page under the pointer");
+    }
+
+    #[test]
+    fn previous_view_after_a_find_step_lets_go_of_the_match() {
+        let mut v = history_search_view();
+        v.screen_rects = vec![(0, Rect::from_min_size(pos2(100.0, 20.0), vec2(300.0, 400.0)))];
+        v.find_step(true);
+        // Previous view while a wheel zoom is still easing: the zoom must not hold the old match
+        // and put the history jump off until it stops.
+        assert!(v.view_history(false));
+        assert_eq!(v.goto, Some((0, 0.0)));
+        v.zoom_at(2.0, pos2(150.0, 50.0));
         assert_eq!(v.zoom_anchor.map(|a| a.0), Some(0), "anchored on the page under the pointer");
     }
 
