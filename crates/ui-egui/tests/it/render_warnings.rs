@@ -2,6 +2,7 @@
 //! shown as if it were complete (#4340).
 
 use egui_kittest::Harness;
+use egui_kittest::kittest::Queryable;
 use pdfcraft_render::RenderWarning;
 use pdfcraft_ui_egui::PdfCraftApp;
 
@@ -66,7 +67,9 @@ fn the_warning_note_closes_with_its_button() {
     let mut h = rendered(devicen_pdf("{ pop pop pop }"));
     h.run_steps(2);
     assert!(h.state().views[0].render_warning_note(0).is_some());
-    h.get_by_label("Dismiss").click();
+    // The note's own close button: on the page, below any notice bar's Dismiss above the document.
+    let close = h.get_all_by_label("Dismiss").max_by(|a, b| a.rect().min.y.total_cmp(&b.rect().min.y)).expect("the note's close button");
+    close.click();
     h.run_steps(2);
     assert_eq!(h.state().views[0].render_warning_note(0), None, "the note is closed");
     assert_eq!(h.state().views[0].page_warnings(), vec![(0, &[RenderWarning::ColourFallback][..])], "the page is still reported");

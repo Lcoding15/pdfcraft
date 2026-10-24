@@ -5177,6 +5177,8 @@ fn paint_render_warnings(
     // Close, as the notice bars above the document close.
     let close = Rect::from_min_size(pos2(note.right() - PAD - CLOSE, note.top() + PAD), vec2(CLOSE, CLOSE));
     let resp = ui.interact(close, ui.id().with(("render-warning-close", page)), Sense::click()).on_hover_text(tl!("Dismiss"));
+    // A button to screen readers and the control channel too, not only a painted cross.
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, tl!("Dismiss")));
     if resp.hovered() {
         painter.rect_filled(close, CornerRadius::same(t.radius), if resp.is_pointer_button_down_on() { t.pressed } else { t.hover });
     }
