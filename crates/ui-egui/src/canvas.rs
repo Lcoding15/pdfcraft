@@ -2176,16 +2176,6 @@ impl DocView {
             self.errors.insert(r.request.page, e);
             return 0;
         }
-        // The page's own rasters and tiles say whether what it shows is complete. Thumbnails,
-        // the organize grid and print previews are other pictures of it and leave this alone.
-        if r.request.tag & (THUMB_TAG | GRID_TAG | PRINT_TAG) == 0 && !r.warnings.is_empty() {
-            let noted = self.warnings.entry(r.request.page).or_default();
-            for w in &r.warnings {
-                if !noted.contains(w) {
-                    noted.push(*w);
-                }
-            }
-        }
         // Even current demand may have been sized with obsolete geometry or a different
         // device limit. Check before cache eviction, conversion and every upload path.
         let max_side = ctx.input(|i| i.max_texture_side);
@@ -2201,6 +2191,17 @@ impl DocView {
         let bytes = rgba_bytes(r.width as usize, r.height as usize);
         if bytes != r.rgba.len() || !self.admit_texture(r.request, bytes) {
             return 0;
+        }
+        // The page's own rasters and tiles say whether what it shows is complete, once they are
+        // shown: a raster refused above shows nothing. Thumbnails, the organize grid and print
+        // previews are other pictures of the page and leave this alone.
+        if r.request.tag & (THUMB_TAG | GRID_TAG | PRINT_TAG) == 0 && !r.warnings.is_empty() {
+            let noted = self.warnings.entry(r.request.page).or_default();
+            for w in &r.warnings {
+                if !noted.contains(w) {
+                    noted.push(*w);
+                }
+            }
         }
         // The length was checked above, so the renderer's buffer becomes the texture data as is.
         let img = texture_image([r.width as usize, r.height as usize], r.rgba);
@@ -5167,7 +5168,9 @@ fn paint_render_warnings(
     let wrap = (shown.width() - 5.0 * PAD - ICON - CLOSE).clamp(80.0, 320.0);
     let galley = ui.fonts_mut(|f| f.layout(text, theme::regular(12.0), t.text, wrap));
     let size = vec2(ICON + galley.size().x + CLOSE, galley.size().y.max(CLOSE)) + vec2(4.0 * PAD, 2.0 * PAD);
-    let note = Rect::from_min_size(pos2(shown.right() - PAD - size.x, shown.top() + PAD), size);
+    // Whole or not at all: a note cut off at the bottom of the page on screen would hide part of
+    // what it says.
+    let Some(note) = warning_note_rect(shown, size, PAD) else { return false };
     // The note is the reader's, not the page's: a press on it doesn't reach the page's tools.
     ui.interact(note, ui.id().with(("render-warning-note", page)), Sense::click());
     painter.rect_filled(note, CornerRadius::same(t.radius), t.card);
@@ -5184,6 +5187,13 @@ fn paint_render_warnings(
     }
     icons::paint(ui, close, "x", 14.0, t.icon);
     resp.clicked()
+}
+
+/// Where a note of `size` goes in the top-right corner of `shown`, `pad` in from its edges; `None`
+/// when it doesn't fit there whole.
+fn warning_note_rect(shown: Rect, size: Vec2, pad: f32) -> Option<Rect> {
+    let note = Rect::from_min_size(pos2(shown.right() - pad - size.x, shown.top() + pad), size);
+    (note.left() >= shown.left() + pad && note.bottom() <= shown.bottom() - pad).then_some(note)
 }
 
 /// What a render warning means for the page on screen.
@@ -6698,6 +6708,31 @@ trailer << /Root 1 0 R >>
         assert_eq!(view.page_warnings(), vec![(1, &[ContentTruncated][..])], "an edited page is drawn again before it is marked");
         view.invalidate_content();
         assert!(view.page_warnings().is_empty(), "nor are pages after an edit to the document");
+    }
+
+    /// #4340: the note is drawn whole or not at all: in a short or narrow part of a page on screen
+    /// it would be cut off.
+    #[test]
+    fn the_warning_note_is_left_out_where_it_would_be_cut_off() {
+        let size = vec2(200.0, 60.0);
+        let shown = Rect::from_min_size(pos2(10.0, 20.0), vec2(400.0, 300.0));
+        assert_eq!(warning_note_rect(shown, size, 8.0), Some(Rect::from_min_size(pos2(202.0, 28.0), size)), "top-right corner");
+        assert_eq!(warning_note_rect(Rect::from_min_size(shown.min, vec2(400.0, 70.0)), size, 8.0), None, "too short");
+        assert_eq!(warning_note_rect(Rect::from_min_size(shown.min, vec2(210.0, 300.0)), size, 8.0), None, "too narrow");
+        assert!(warning_note_rect(Rect::from_min_size(shown.min, vec2(216.0, 76.0)), size, 8.0).is_some(), "just fits");
+    }
+
+    /// #4340: a raster the view refuses (here: no pixels) shows nothing, so its warnings don't mark
+    /// the page either.
+    #[test]
+    fn a_refused_raster_does_not_mark_the_page() {
+        let ctx = egui::Context::default();
+        let mut view = DocView::new(DocId(1), &thumbnail_info(1), ViewDefaults::default());
+        let page = RenderRequest { page: 0, ..Default::default() };
+        view.last_queue = vec![page];
+        let refused = pdfcraft_render::RenderedPage { warnings: vec![pdfcraft_render::RenderWarning::ContentTruncated], ..solid_result(page, 0, 0) };
+        assert_eq!(view.receive_result(&ctx, refused), 0, "refused");
+        assert!(view.page_warnings().is_empty(), "{:?}", view.page_warnings());
     }
 
     /// #4340: closing a page's warning note hides the note only; the page is still reported as
