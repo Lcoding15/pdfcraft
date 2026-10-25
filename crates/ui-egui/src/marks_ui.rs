@@ -193,7 +193,9 @@ impl MarksDraft {
         if self.wm.font_size <= 0.0 {
             self.wm.font_size = 72.0;
         }
-        let s = SavedWatermark { name: name.clone(), wm: Watermark { source: None, ..self.wm.clone() }, fit: self.fit };
+        // The text is kept as long as a saved setting loads it back, so it comes back the same.
+        let text = self.wm.text.chars().take(MAX_TEXT_CHARS).collect();
+        let s = SavedWatermark { name: name.clone(), wm: Watermark { text, source: None, ..self.wm.clone() }, fit: self.fit };
         let at = match self.saved.iter().position(|o| o.name == name) {
             Some(at) => {
                 *self.saved.get_mut(at)? = s;
@@ -909,6 +911,12 @@ mod tests {
         assert!(saved_from_json(&serde_json::json!({ "name": "x" })).is_empty());
         // A missing or unusable size loads as the 72 the dialog shows for an unset size, so the
         // setting still matches the shown watermark and can be deleted.
+        // A text longer than a setting keeps is saved as it loads back.
+        let mut long = MarksDraft::default();
+        long.wm.text = "y".repeat(MAX_TEXT_CHARS + 10);
+        long.saved_name = "Long".into();
+        long.save_watermark();
+        assert_eq!(saved_from_json(&saved_to_json(&long.saved)), long.saved, "the same after a reload");
         let unset = saved_from_json(&serde_json::json!([{ "name": "u", "font_size": 0 }, { "name": "v" }]));
         assert_eq!(unset.iter().map(|s| s.wm.font_size).collect::<Vec<_>>(), [72.0, 72.0]);
     }
