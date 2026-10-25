@@ -734,7 +734,9 @@ fn undo_and_redo_buttons_in_the_mode_bar() {
 /// room the tabs leave.
 #[test]
 fn the_search_field_leaves_the_mode_tabs_clear_in_the_narrowest_window() {
-    for (lang, sign, search) in [("en", "E-Sign", "Find tools and commands"), ("de", "E-Signatur", "Werkzeuge und Befehle suchen")] {
+    for (lang, sign, search, undo) in
+        [("en", "E-Sign", "Find tools and commands", "Undo ("), ("de", "E-Signatur", "Werkzeuge und Befehle suchen", "Rückgängig (")]
+    {
         let mut h = Harness::builder().with_size(egui::vec2(820.0, 520.0)).build_eframe(|_cc| {
             let mut app = PdfCraftApp::new();
             app.set_option("language", lang).unwrap();
@@ -744,7 +746,7 @@ fn the_search_field_leaves_the_mode_tabs_clear_in_the_narrowest_window() {
         h.run_steps(4);
         let tab = h.get_by_label(sign).rect();
         let field = h.get_by_label(search).rect();
-        let undo = h.get_by_label_contains("Undo (").rect();
+        let undo = h.get_by_label_contains(undo).rect();
         assert!(field.left() >= tab.right(), "{lang}: the search field {field:?} runs over {sign} {tab:?}");
         assert!(field.right() <= undo.left(), "{lang}: the search field {field:?} runs under Undo {undo:?}");
     }
