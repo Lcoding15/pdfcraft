@@ -2811,6 +2811,14 @@ theme	Appearance	Teema
 	Delete attachment {key}	Poista liite {key}
 @plural	{n} reply|{n} replies	{n} vastaus|{n} vastausta
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Sivutyökalut
+	Insert pages from a file after the selection…	Lisää sivuja tiedostosta valinnan jälkeen…
+	Rotate the selected pages counterclockwise	Kierrä valittuja sivuja vastapäivään
+	Rotate the selected pages clockwise	Kierrä valittuja sivuja myötäpäivään
+	Extract the selected pages…	Pura valitut sivut…
+	Delete the selected pages	Poista valitut sivut
+
 # Render warnings on the page in the viewer (#4340) (AI-assisted, not separately native-reviewed)
 	Part of this page isn't shown: its content goes past the most PdfCraft draws for one page.	Osa tästä sivusta ei näy: sen sisältö ylittää enimmäismäärän, jonka PdfCraft piirtää yhdelle sivulle.
 	A colour on this page couldn't be computed and is shown in a fallback colour.	Tämän sivun väriä ei voitu laskea, joten se näytetään varavärillä.

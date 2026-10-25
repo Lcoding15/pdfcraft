@@ -2547,6 +2547,14 @@ animation effects	Off	Ανενεργά
 	Today	Σήμερα
 @plural	{n} reply|{n} replies	{n} απάντηση|{n} απαντήσεις
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Εργαλεία σελίδων
+	Insert pages from a file after the selection…	Εισαγωγή σελίδων από αρχείο μετά την επιλογή…
+	Rotate the selected pages counterclockwise	Περιστροφή των επιλεγμένων σελίδων αριστερόστροφα
+	Rotate the selected pages clockwise	Περιστροφή των επιλεγμένων σελίδων δεξιόστροφα
+	Extract the selected pages…	Εξαγωγή των επιλεγμένων σελίδων…
+	Delete the selected pages	Διαγραφή των επιλεγμένων σελίδων
+
 # Render warnings on the page in the viewer (#4340) (AI-assisted, not separately native-reviewed)
 	Part of this page isn't shown: its content goes past the most PdfCraft draws for one page.	Μέρος αυτής της σελίδας δεν εμφανίζεται: το περιεχόμενό της υπερβαίνει το μέγιστο που σχεδιάζει το PdfCraft για μία σελίδα.
 	A colour on this page couldn't be computed and is shown in a fallback colour.	Ένα χρώμα σε αυτή τη σελίδα δεν ήταν δυνατό να υπολογιστεί και εμφανίζεται με εναλλακτικό χρώμα.

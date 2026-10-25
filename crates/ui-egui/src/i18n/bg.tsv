@@ -2504,6 +2504,14 @@ animation effects	Off	Изключени
 	Today	Днес
 @plural	{n} reply|{n} replies	{n} отговор|{n} отговора
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Инструменти за страници
+	Insert pages from a file after the selection…	Вмъкване на страници от файл след избраното…
+	Rotate the selected pages counterclockwise	Завъртане на избраните страници обратно на часовниковата стрелка
+	Rotate the selected pages clockwise	Завъртане на избраните страници по часовниковата стрелка
+	Extract the selected pages…	Извличане на избраните страници…
+	Delete the selected pages	Изтриване на избраните страници
+
 # Render warnings on the page in the viewer (#4340) (AI-assisted, not separately native-reviewed)
 	Part of this page isn't shown: its content goes past the most PdfCraft draws for one page.	Част от тази страница не е показана: съдържанието ѝ надхвърля максимума, който PdfCraft изчертава за една страница.
 	A colour on this page couldn't be computed and is shown in a fallback colour.	Цвят на тази страница не можа да бъде изчислен и е показан с резервен цвят.

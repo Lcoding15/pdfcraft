@@ -2491,6 +2491,14 @@ animation effects	Off	關
 	Today	今天
 @plural	{n} reply|{n} replies	{n} 則回覆
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	頁面工具
+	Insert pages from a file after the selection…	在所選內容後插入檔案中的頁面…
+	Rotate the selected pages counterclockwise	逆時針旋轉所選頁面
+	Rotate the selected pages clockwise	順時針旋轉所選頁面
+	Extract the selected pages…	擷取所選頁面…
+	Delete the selected pages	刪除所選頁面
+
 # Render warnings on the page in the viewer (#4340) (AI-assisted, not separately native-reviewed)
 	Part of this page isn't shown: its content goes past the most PdfCraft draws for one page.	此頁面的部分內容未顯示：其內容超出了 PdfCraft 為單一頁面繪製的上限。
 	A colour on this page couldn't be computed and is shown in a fallback colour.	此頁面上的某個顏色無法計算，已改用替代顏色顯示。

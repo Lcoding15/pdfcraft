@@ -2864,6 +2864,14 @@ theme	Appearance	Aspecto
 	Today	Hoy
 @plural	{n} reply|{n} replies	{n} respuesta|{n} respuestas
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Herramientas de página
+	Insert pages from a file after the selection…	Insertar páginas de un archivo después de la selección…
+	Rotate the selected pages counterclockwise	Girar las páginas seleccionadas en sentido antihorario
+	Rotate the selected pages clockwise	Girar las páginas seleccionadas en sentido horario
+	Extract the selected pages…	Extraer las páginas seleccionadas…
+	Delete the selected pages	Eliminar las páginas seleccionadas
+
 # Render warnings on the page in the viewer (#4340) (AI-assisted, not separately native-reviewed)
 	Part of this page isn't shown: its content goes past the most PdfCraft draws for one page.	Parte de esta página no se muestra: su contenido supera el máximo que PdfCraft dibuja para una página.
 	A colour on this page couldn't be computed and is shown in a fallback colour.	No se pudo calcular un color de esta página y se muestra con un color alternativo.
