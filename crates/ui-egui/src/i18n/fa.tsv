@@ -2804,3 +2804,7 @@ theme	Appearance	ظاهر
 	two cells would both be named {name}	دو خانه هر دو با نام {name} نام‌گذاری می‌شوند
 	a field named {name} already exists	فیلدی با نام {name} از قبل وجود دارد
 	Today	امروز
+
+# Undo and Redo buttons (#4050) (AI-assisted, not separately native-reviewed)
+	Undo ({key})	واگرد ({key})
+	Redo ({key})	ازنو ({key})
