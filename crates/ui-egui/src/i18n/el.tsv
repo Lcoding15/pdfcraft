@@ -2495,6 +2495,14 @@ animation effects	Off	Ανενεργά
 	Make properties default	Ορισμός ιδιοτήτων ως προεπιλογή
 	Pages selected	Επιλεγμένες σελίδες
 	Page properties	Ιδιότητες σελίδας
+	Create & Edit	Δημιουργία και επεξεργασία
+	Review & Compare	Αναθεώρηση και σύγκριση
+	Forms & Signatures	Φόρμες και υπογραφές
+	Protect & Standardize	Προστασία και τυποποίηση
+	Customize & Automate	Προσαρμογή και αυτοματοποίηση
+	No tools match your search.	Κανένα εργαλείο δεν ταιριάζει με την αναζήτησή σας.
+	Expand all tools	Ανάπτυξη όλων των εργαλείων
+	Collapse all tools	Σύμπτυξη όλων των εργαλείων
 	Attach a file…	Επισύναψη αρχείου…
 	Delete attachment	Διαγραφή συνημμένου
 	Attaching files is not available on the web yet	Η επισύναψη αρχείων δεν είναι ακόμη διαθέσιμη στον ιστό
@@ -2537,6 +2545,7 @@ animation effects	Off	Ανενεργά
 
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Σήμερα
+@plural	{n} reply|{n} replies	{n} απάντηση|{n} απαντήσεις
 
 # Render warnings on the page in the viewer (#4340) (AI-assisted, not separately native-reviewed)
 	Part of this page isn't shown: its content goes past the most PdfCraft draws for one page.	Μέρος αυτής της σελίδας δεν εμφανίζεται: το περιεχόμενό της υπερβαίνει το μέγιστο που σχεδιάζει το PdfCraft για μία σελίδα.

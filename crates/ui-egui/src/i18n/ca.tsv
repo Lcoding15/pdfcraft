@@ -2654,6 +2654,14 @@ certificate	SHA-256 digest	Resum SHA-256
 	Optimizing… merging image fragments	S'està optimitzant… fusionant fragments d'imatge
 	Outline colour:	Color del contorn:
 	Page properties	Propietats de la pàgina
+	Create & Edit	Crea i edita
+	Review & Compare	Revisa i compara
+	Forms & Signatures	Formularis i signatures
+	Protect & Standardize	Protegeix i estandarditza
+	Customize & Automate	Personalitza i automatitza
+	No tools match your search.	Cap eina coincideix amb la cerca.
+	Expand all tools	Desplega totes les eines
+	Collapse all tools	Replega totes les eines
 	Pages counted	Pàgines comptades
 	Pages selected	Pàgines seleccionades
 	Print as image	Imprimeix com a imatge
@@ -2792,6 +2800,7 @@ theme	Appearance	Aspecte
 	Attaching files is not available on the web yet	Encara no es poden adjuntar fitxers al web
 	Delete attachment	Elimina l'adjunt
 	Delete attachment {key}	Elimina l'adjunt {key}
+@plural	{n} reply|{n} replies	{n} resposta|{n} respostes
 
 # Render warnings on the page in the viewer (#4340) (AI-assisted, not separately native-reviewed)
 	Part of this page isn't shown: its content goes past the most PdfCraft draws for one page.	Part d'aquesta pàgina no es mostra: el seu contingut supera el màxim que PdfCraft dibuixa per a una pàgina.
