@@ -133,7 +133,18 @@ impl PdfCraftApp {
                 let open = |app: &Self| {
                     app.views.iter().any(|v| app.session.get(v.id).and_then(|d| d.path.as_deref()).map(absolute).as_deref() == Some(f.path.as_str()))
                 };
-                if skip.contains(&f.path) || !std::path::Path::new(&f.path).is_file() || open(self) {
+                if skip.contains(&f.path) || !std::path::Path::new(&f.path).is_file() {
+                    continue;
+                }
+                // A pinned file the loop above opened: back to the page the session left it on.
+                if open(self) {
+                    if let Some(view) = self
+                        .views
+                        .iter_mut()
+                        .find(|v| self.session.get(v.id).and_then(|d| d.path.as_deref()).map(absolute).as_deref() == Some(f.path.as_str()))
+                    {
+                        view.go_to_page(f.page);
+                    }
                     continue;
                 }
                 let before = self.views.len();
@@ -157,6 +168,9 @@ impl PdfCraftApp {
                 self.active = active;
             }
         }
+        // Pinned tabs lead the strip, whichever loop opened them.
+        #[cfg(not(target_arch = "wasm32"))]
+        self.pinned_tabs_first();
         #[cfg(target_arch = "wasm32")]
         let _ = (last, skip);
     }

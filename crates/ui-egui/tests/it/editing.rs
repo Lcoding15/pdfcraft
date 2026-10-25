@@ -1025,18 +1025,21 @@ fn pinned_tabs_lead_the_strip_and_open_at_every_start() {
 fn pinned_files_reopen_among_the_pinned_tabs_and_keep_the_session() {
     use pdfcraft_ui_egui::last_session::{LastSession, SessionFile};
     let dir = TempPdfs::new("pinned-reopen");
-    let files = [dir.file("a.pdf", 1), dir.file("b.pdf", 1), dir.file("c.pdf", 1)];
+    let files = [dir.file("a.pdf", 1), dir.file("b.pdf", 1), dir.file("c.pdf", 3)];
     let names = |app: &PdfCraftApp| -> Vec<String> {
         open_paths(app).iter().map(|p| std::path::Path::new(p).file_name().unwrap().to_string_lossy().into_owned()).collect()
     };
-    let abs = |p: &str| std::fs::canonicalize(p).map(|p| p.to_string_lossy().into_owned()).unwrap_or_else(|_| p.to_string());
+    // As the app keeps pins: absolute, links not resolved.
+    let abs = |p: &str| std::path::absolute(p).map(|p| p.to_string_lossy().into_owned()).unwrap_or_else(|_| p.to_string());
     let mut app = PdfCraftApp::new();
     app.run_inline = true;
     app.pinned_tabs = vec![abs(&files[2])];
     app.open_path(&files[0]);
     app.open_path(&files[1]);
     app.open_path(&files[2]);
-    assert_eq!(names(&app), ["c.pdf", "a.pdf", "b.pdf"], "the pinned c.pdf, opened last, leads the strip");
+    assert_eq!(names(&app), ["a.pdf", "b.pdf", "c.pdf"], "opened last, at the end until the next frame");
+    app.pinned_tabs_first();
+    assert_eq!(names(&app), ["c.pdf", "a.pdf", "b.pdf"], "the pinned c.pdf leads the strip");
     assert_eq!(app.active.and_then(|i| app.views.get(i)).map(|v| v.id), app.views.first().map(|v| v.id), "and is the tab shown");
 
     // The last session had b.pdf and the pinned c.pdf open, c.pdf active.
@@ -1045,12 +1048,13 @@ fn pinned_files_reopen_among_the_pinned_tabs_and_keep_the_session() {
     later.reopen_last_session = true;
     later.pinned_tabs = vec![abs(&files[2])];
     later.last_session = LastSession {
-        files: vec![SessionFile { path: abs(&files[1]), page: 0 }, SessionFile { path: abs(&files[2]), page: 0 }],
+        files: vec![SessionFile { path: abs(&files[1]), page: 0 }, SessionFile { path: abs(&files[2]), page: 2 }],
         active: Some(abs(&files[2])),
     };
     later.reopen_last_files(&[]);
     assert_eq!(names(&later), ["c.pdf", "b.pdf"]);
     assert_eq!(later.active, Some(0), "c.pdf, active last time, is active again");
+    assert_eq!(later.views[0].current, 2, "and on the page the session left it on, though the pinned loop opened it");
 
     // c.pdf has a recovery snapshot: the Recovery dialog offers it, start doesn't open it.
     let mut recovering = PdfCraftApp::new();

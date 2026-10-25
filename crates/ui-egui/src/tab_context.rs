@@ -49,6 +49,30 @@ impl crate::PdfCraftApp {
         })
     }
 
+    /// Puts the pinned tabs first, in the order they are in, and keeps the active tab (#2926).
+    /// A file opened while it is pinned is added at the end, as any other: the steps that follow
+    /// an open (a link's destination, a recovery, the file watcher) act on the newest tab, so the
+    /// tab joins the pinned ones afterwards, here, once a frame.
+    pub fn pinned_tabs_first(&mut self) {
+        if self.pinned_tabs.is_empty() {
+            return;
+        }
+        let pinned: Vec<bool> = self.views.iter().map(|v| self.tab_pinned(v.id)).collect();
+        // Already in order: no pinned tab after an unpinned one.
+        if !pinned.windows(2).any(|w| matches!(w, [false, true])) {
+            return;
+        }
+        let active = self.active_ids().map(|(_, id)| id);
+        let mut views = std::mem::take(&mut self.views);
+        let mut flags = pinned.into_iter();
+        let (mut first, rest): (Vec<_>, Vec<_>) = views.drain(..).partition(|_| flags.next().unwrap_or(false));
+        first.extend(rest);
+        self.views = first;
+        if let Some(id) = active {
+            self.active = self.views.iter().position(|v| v.id == id);
+        }
+    }
+
     pub(crate) fn tab_action(&mut self, action: Action) {
         match action {
             Action::Close(id) => {

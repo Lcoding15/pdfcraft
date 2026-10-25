@@ -27,6 +27,8 @@ const TAB_HEIGHT: f32 = 30.0;
 const STRIP_BUTTON: f32 = 28.0;
 
 pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+    // A pinned file opened since the last frame joins the pinned tabs (#2926).
+    app.pinned_tabs_first();
     let t = Tokens::get(ui.ctx());
     // macOS: the strip is the 28 pt title bar, so the traffic lights are centred in it; tabs and
     // buttons shrink to keep a margin above and below.
