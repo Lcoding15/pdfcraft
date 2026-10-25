@@ -2777,3 +2777,6 @@ theme	Appearance	모양
 	Delete attachment	첨부 파일 삭제
 	Delete attachment {key}	첨부 파일 {key} 삭제
 @plural	{n} reply|{n} replies	답글 {n}개
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	텍스트를 읽을 수 없는 페이지: {n}. 해당 페이지의 일치 항목은 목록에 없습니다.

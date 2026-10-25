@@ -2810,3 +2810,6 @@ theme	Appearance	Teema
 	Delete attachment	Poista liite
 	Delete attachment {key}	Poista liite {key}
 @plural	{n} reply|{n} replies	{n} vastaus|{n} vastausta
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Sivuja, joiden tekstiä ei voitu lukea: {n}. Niillä olevia osumia ei näytetä.

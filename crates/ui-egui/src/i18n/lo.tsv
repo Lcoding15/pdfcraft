@@ -2448,3 +2448,6 @@ animation effects	Off	ປິດ
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	ມື້ນີ້
 @plural	{n} reply|{n} replies	ການຕອບກັບ {n} ລາຍການ
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	ໜ້າທີ່ອ່ານຂໍ້ຄວາມບໍ່ໄດ້: {n}. ຜົນທີ່ກົງກັນໃນໜ້າເຫຼົ່ານັ້ນບໍ່ໄດ້ຖືກລາຍການ.

@@ -2801,3 +2801,6 @@ theme	Appearance	Išvaizda
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Šiandien
 @plural	{n} reply|{n} replies	{n} atsakymas|{n} atsakymai|{n} atsakymų
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Puslapiai, kurių teksto nepavyko perskaityti: {n}. Atitikmenys juose neišvardyti.

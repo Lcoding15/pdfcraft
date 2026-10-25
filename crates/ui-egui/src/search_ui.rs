@@ -14,6 +14,8 @@ const CONTEXT: usize = 36;
 pub(crate) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, pages: usize) {
     crate::widgets::begin_dialog(ui);
     let searched = view.texts.len() + view.text_failed.len();
+    // Pages whose text couldn't be read count as searched, but a match on them can't be found.
+    let unread = view.text_failed.len();
     let Some(find) = view.find.as_mut() else { return };
     find.in_panel = true;
     let l = ui.label(egui::RichText::new(tl!("What word or phrase would you like to search for?")).color(t.text_muted));
@@ -61,6 +63,12 @@ pub(crate) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, pages: us
     let mut select = None;
     if !find.matches.is_empty() && searched >= pages {
         let found: std::collections::BTreeSet<usize> = find.matches.iter().map(|(p, _)| *p).collect();
+        // Said beside the actions, so a selection or list that leaves those pages out isn't
+        // taken for every page with a match.
+        if unread > 0 {
+            let text = crate::i18n::fmt(tl!("Pages whose text couldn't be read: {n}. A match on them isn't listed."), &[("n", &unread.to_string())]);
+            ui.label(egui::RichText::new(text).color(t.text_muted));
+        }
         ui.horizontal(|ui| {
             let n = found.len().to_string();
             let tip = crate::i18n::fmt(tl!("Select the {n} pages with a match, for Extract, Print or Delete"), &[("n", &n)]);
@@ -114,5 +122,44 @@ pub(crate) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, pages: us
     }
     if let Some(pages) = select {
         view.select_pages(&pages);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::PdfCraftApp;
+    use egui_kittest::{Harness, kittest::Queryable};
+
+    /// CodeRabbit on #4578: a page whose text couldn't be read counts as searched, so Select pages
+    /// and Copy page numbers show; the panel says such pages are left out of the results.
+    #[test]
+    fn unread_pages_are_said_beside_the_page_actions() {
+        let bytes = pdfcraft_engine::Session::new().create_from_text("Pages", "Hello one\u{c}Hello two\u{c}Hello three").unwrap();
+        let mut h = Harness::builder().with_size(egui::vec2(1200.0, 900.0)).build_eframe(|_| {
+            let mut app = PdfCraftApp::new();
+            app.set_option("language", "en").unwrap();
+            app.open_bytes("pages.pdf", None, bytes.as_ref().clone()).unwrap();
+            app
+        });
+        h.run_steps(2);
+        assert!(h.state_mut().execute("edit.advanced_search"));
+        h.run_steps(2);
+        if let Some(f) = h.state_mut().views[0].find.as_mut() {
+            f.query = "Hello".into();
+        }
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+        while h.query_by_label("Select pages").is_none() {
+            assert!(std::time::Instant::now() < deadline, "the search finishes");
+            h.run_steps(2);
+            std::thread::sleep(std::time::Duration::from_millis(5));
+        }
+        assert!(h.query_by_label_contains("couldn't be read").is_none(), "every page was read");
+        // The third page's text can't be read.
+        let view = &mut h.state_mut().views[0];
+        view.texts.remove(&2);
+        view.text_failed.insert(2);
+        h.run_steps(2);
+        assert!(h.query_by_label("Select pages").is_some(), "the actions stay");
+        h.get_by_label_contains("Pages whose text couldn't be read: 1.");
     }
 }

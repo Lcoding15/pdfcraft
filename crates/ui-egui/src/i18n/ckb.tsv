@@ -2732,3 +2732,6 @@ certificate	Version	وەشان
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	ئەمڕۆ
 @plural	{n} reply|{n} replies	{n} وەڵام|{n} وەڵام
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	ئەو پەڕانەی دەقەکەیان نەخوێندرایەوە: {n}. هاوتایەک لەسەریان لیست ناکرێت.

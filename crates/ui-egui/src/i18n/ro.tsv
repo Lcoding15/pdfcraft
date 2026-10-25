@@ -2801,3 +2801,6 @@ theme	Appearance	Aspect
 	Delete attachment	Ștergere atașament
 	Delete attachment {key}	Ștergere atașament {key}
 @plural	{n} reply|{n} replies	{n} răspuns|{n} răspunsuri|{n} de răspunsuri
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Pagini al căror text nu a putut fi citit: {n}. Potrivirile de pe ele nu sunt listate.

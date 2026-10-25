@@ -2801,3 +2801,6 @@ theme	Appearance	Aspecte
 	Delete attachment	Elimina l'adjunt
 	Delete attachment {key}	Elimina l'adjunt {key}
 @plural	{n} reply|{n} replies	{n} resposta|{n} respostes
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Pàgines el text de les quals no s'ha pogut llegir: {n}. Les coincidències que hi hagi no es mostren.

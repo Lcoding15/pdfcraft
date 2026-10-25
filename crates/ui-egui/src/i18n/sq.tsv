@@ -2527,3 +2527,6 @@ animation effects	Off	Joaktiv
 	Delete attachment	Fshi bashkëngjitjen
 	Delete attachment {key}	Fshi bashkëngjitjen {key}
 @plural	{n} reply|{n} replies	{n} përgjigje|{n} përgjigje
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Faqe teksti i të cilave nuk mund të lexohej: {n}. Përputhjet në to nuk renditen.

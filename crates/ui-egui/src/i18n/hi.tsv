@@ -2777,3 +2777,6 @@ theme	Appearance	स्वरूप
 	Delete attachment	अनुलग्नक हटाएँ
 	Delete attachment {key}	अनुलग्नक {key} हटाएँ
 @plural	{n} reply|{n} replies	{n} जवाब
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	ऐसे पृष्ठ जिनका पाठ पढ़ा नहीं जा सका: {n}। उन पर कोई मिलान सूचीबद्ध नहीं है।

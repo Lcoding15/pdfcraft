@@ -2778,3 +2778,6 @@ theme	Appearance	Tampilan
 	Delete attachment	Hapus lampiran
 	Delete attachment {key}	Hapus lampiran {key}
 @plural	{n} reply|{n} replies	{n} balasan
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Halaman yang teksnya tidak dapat dibaca: {n}. Kecocokan di halaman tersebut tidak dicantumkan.

@@ -2453,3 +2453,6 @@ animation effects	Off	Выкл
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Сегодня
 @plural	{n} reply|{n} replies	{n} ответ|{n} ответа|{n} ответов
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Страницы, текст которых не удалось прочитать: {n}. Совпадения на них не показаны.

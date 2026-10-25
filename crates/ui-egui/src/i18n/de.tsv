@@ -2541,3 +2541,6 @@ animation effects	Off	Aus
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Heute
 @plural	{n} reply|{n} replies	{n} Antwort|{n} Antworten
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Seiten, deren Text nicht gelesen werden konnte: {n}. Treffer darauf werden nicht aufgeführt.

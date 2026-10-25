@@ -2806,3 +2806,6 @@ certificate	Version	Version
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Aujourd'hui
 @plural	{n} reply|{n} replies	{n} réponse|{n} réponses
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Pages dont le texte n'a pas pu être lu : {n}. Les correspondances qu'elles contiennent ne sont pas listées.

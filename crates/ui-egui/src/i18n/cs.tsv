@@ -2847,3 +2847,6 @@ certificate	Version	Verze
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Dnes
 @plural	{n} reply|{n} replies	{n} odpověď|{n} odpovědi|{n} odpovědí
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Stránky, jejichž text nešlo přečíst: {n}. Shody na nich nejsou uvedeny.

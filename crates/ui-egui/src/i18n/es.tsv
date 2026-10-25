@@ -2863,3 +2863,6 @@ theme	Appearance	Aspecto
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Hoy
 @plural	{n} reply|{n} replies	{n} respuesta|{n} respuestas
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Páginas cuyo texto no se pudo leer: {n}. Las coincidencias en ellas no se muestran.

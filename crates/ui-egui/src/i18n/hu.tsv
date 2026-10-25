@@ -2539,3 +2539,6 @@ animation effects	Off	Ki
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Ma
 @plural	{n} reply|{n} replies	{n} válasz|{n} válasz
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Oldalak, amelyek szövegét nem sikerült beolvasni: {n}. Az ezeken lévő találatok nem szerepelnek a listában.

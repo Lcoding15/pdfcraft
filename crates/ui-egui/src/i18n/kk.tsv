@@ -2538,3 +2538,6 @@ animation effects	Off	Өшірулі
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Бүгін
 @plural	{n} reply|{n} replies	{n} жауап|{n} жауап
+
+# Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
+	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Мәтінін оқу мүмкін болмаған беттер: {n}. Олардағы сәйкестіктер тізімде жоқ.
