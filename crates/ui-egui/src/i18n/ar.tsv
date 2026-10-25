@@ -2817,6 +2817,14 @@ certificate	Version	الإصدار
 	Today	اليوم
 @plural	{n} reply|{n} replies	{n} رد|{n} رد|{n} ردّان|{n} ردود|{n} ردًا|{n} رد
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	أدوات الصفحات
+	Insert pages from a file after the selection…	إدراج صفحات من ملف بعد التحديد…
+	Rotate the selected pages counterclockwise	تدوير الصفحات المحددة عكس اتجاه عقارب الساعة
+	Rotate the selected pages clockwise	تدوير الصفحات المحددة باتجاه عقارب الساعة
+	Extract the selected pages…	استخراج الصفحات المحددة…
+	Delete the selected pages	حذف الصفحات المحددة
+
 # Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
 	Change	تغيير
 	Reset	إعادة تعيين

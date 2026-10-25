@@ -2802,6 +2802,14 @@ theme	Appearance	Išvaizda
 	Today	Šiandien
 @plural	{n} reply|{n} replies	{n} atsakymas|{n} atsakymai|{n} atsakymų
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Puslapių įrankiai
+	Insert pages from a file after the selection…	Įterpti puslapius iš failo po pasirinkimo…
+	Rotate the selected pages counterclockwise	Pasukti pasirinktus puslapius prieš laikrodžio rodyklę
+	Rotate the selected pages clockwise	Pasukti pasirinktus puslapius pagal laikrodžio rodyklę
+	Extract the selected pages…	Išskleisti pasirinktus puslapius…
+	Delete the selected pages	Ištrinti pasirinktus puslapius
+
 # Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
 	Change	Keisti
 	Reset	Atkurti
