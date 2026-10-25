@@ -143,8 +143,9 @@ impl SavedWatermark {
         let wm = Watermark {
             text,
             source: None,
-            // 0 is a size not set yet (the dialog shows 72 then).
-            font_size: v["font_size"].as_f64().filter(|n| n.is_finite() && *n > 0.0).map_or(0.0, |n| n.clamp(6.0, 300.0)),
+            // A size not set yet loads as the 72 the dialog shows for it, so the setting still
+            // matches the shown watermark.
+            font_size: v["font_size"].as_f64().filter(|n| n.is_finite() && *n > 0.0).map_or(72.0, |n| n.clamp(6.0, 300.0)),
             color: [0, 1, 2].map(|i| pair("color", i, 0.0, 1.0, d.color[i])),
             opacity: num("opacity", 0.0, 1.0, d.opacity),
             rotation: num("rotation", -180.0, 180.0, d.rotation),
@@ -188,6 +189,10 @@ impl MarksDraft {
     /// `None` without a name, for a picture watermark, or when [`MAX_SAVED`] are kept already.
     pub fn save_watermark(&mut self) -> Option<usize> {
         let name = clean_name(&self.saved_name).filter(|_| !self.use_file)?;
+        // An unset size is the 72 the dialog shows for it, as a saved setting loads it.
+        if self.wm.font_size <= 0.0 {
+            self.wm.font_size = 72.0;
+        }
         let s = SavedWatermark { name: name.clone(), wm: Watermark { source: None, ..self.wm.clone() }, fit: self.fit };
         let at = match self.saved.iter().position(|o| o.name == name) {
             Some(at) => {
@@ -891,6 +896,10 @@ mod tests {
         let many = serde_json::Value::Array((0..500).map(|i| serde_json::json!({ "name": format!("s{i}") })).collect());
         assert_eq!(saved_from_json(&many).len(), MAX_SAVED);
         assert!(saved_from_json(&serde_json::json!({ "name": "x" })).is_empty());
+        // A missing or unusable size loads as the 72 the dialog shows for an unset size, so the
+        // setting still matches the shown watermark and can be deleted.
+        let unset = saved_from_json(&serde_json::json!([{ "name": "u", "font_size": 0 }, { "name": "v" }]));
+        assert_eq!(unset.iter().map(|s| s.wm.font_size).collect::<Vec<_>>(), [72.0, 72.0]);
     }
 
     #[test]
