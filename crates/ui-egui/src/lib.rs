@@ -55,6 +55,7 @@ mod create_multiple_ui;
 mod create_ui;
 mod credits;
 mod crop;
+pub mod custom_shortcuts;
 mod drag_pointer;
 mod export_ui;
 mod js_ui;
@@ -721,6 +722,10 @@ pub struct PdfCraftApp {
     /// Restore last view settings when reopening documents (Preferences ▸ Documents and view;
     /// #1767): the page, zoom and page display a file was last shown with. On by default.
     pub restore_last_view: bool,
+    /// Keyboard shortcuts the user changed (Help ▸ Keyboard shortcuts, #4635).
+    pub shortcuts: std::sync::Arc<custom_shortcuts::Overrides>,
+    /// The command whose new shortcut the Keyboard shortcuts dialog is waiting for.
+    pub shortcut_capture: Option<&'static str>,
     /// How files were last shown, most recent first (see `last_view`).
     pub last_views: Vec<last_view::LastView>,
     /// The files open when PdfCraft last closed, read from the settings for
@@ -1146,6 +1151,8 @@ impl PdfCraftApp {
             recent: Vec::new(),
             reopen_last_session: false,
             restore_last_view: true,
+            shortcuts: Default::default(),
+            shortcut_capture: None,
             last_views: Vec::new(),
             last_session: Default::default(),
             quit_session: None,
@@ -2619,6 +2626,7 @@ impl PdfCraftApp {
             "recent": self.recent,
             "reopen_last_session": self.reopen_last_session,
             "restore_last_view": self.restore_last_view,
+            "shortcuts": self.shortcuts.to_json(),
             "last_views": self.last_views_to_save(),
             // Kept only while the preference is on.
             "last_session": self.reopen_last_session.then(|| self.session_to_save()),
@@ -2724,6 +2732,7 @@ impl PdfCraftApp {
             self.restore_last_view = on;
         }
         self.restore_last_views(&v["last_views"]);
+        self.shortcuts = std::sync::Arc::new(custom_shortcuts::Overrides::from_json(&v["shortcuts"]));
         self.last_session = last_session::LastSession::from_json(&v["last_session"]);
         if let Some(on) = v["system_title_bar"].as_bool() {
             self.system_title_bar = on;
@@ -3654,6 +3663,10 @@ impl eframe::App for PdfCraftApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
         i18n::set_current(i18n::Lang::from_pref(&self.language));
+        custom_shortcuts::publish(&ctx, &self.shortcuts);
+        if self.dialog != Some(Dialog::Shortcuts) {
+            self.shortcut_capture = None;
+        }
         // Fonts registered via set_fonts only take effect next frame; named families would panic now.
         if !self.fonts_ready {
             ctx.request_repaint();

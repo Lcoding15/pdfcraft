@@ -699,3 +699,85 @@ fn ctrl_tab_steps_through_the_tabs_in_order_and_wraps_around() {
         assert!(!doc.dirty, "switching tabs changes no document");
     }
 }
+
+/// #4635: Help ▸ Keyboard shortcuts changes a command's keys. The new keys run it, its old ones
+/// no longer do, the menus and the search field say so, and the change is kept in the settings.
+#[test]
+fn a_shortcut_changed_in_the_shortcuts_dialog_runs_its_command() {
+    let mut h = harness();
+    h.state_mut().execute("help.shortcuts");
+    h.run_steps(2);
+    // The search narrows the list to the one row.
+    let find = h.get_by_role_and_label(egui::accesskit::Role::TextInput, "Find a command");
+    find.focus();
+    find.type_text("tools and commands");
+    h.run_steps(2);
+    let change = h.get_by_label("Change").rect();
+    h.hover_at(change.center());
+    h.run_steps(1);
+    h.drag_at(change.center());
+    h.drop_at(change.center());
+    h.run_steps(2);
+    assert_eq!(h.state().shortcut_capture, Some("view.palette"));
+    h.get_by_label("Press the new keys (Esc cancels)");
+    // Keys a press can't take are refused with a reason, and the dialog keeps waiting.
+    h.key_press_modifiers(Modifiers::COMMAND, Key::C);
+    h.run_steps(2);
+    assert!(h.state().toast.as_ref().is_some_and(|(m, _)| m.contains("Copy selected text")), "{:?}", h.state().toast);
+    // Escape stops waiting and leaves the dialog open.
+    h.state_mut().shortcut_capture = Some("view.palette");
+    h.run_steps(1);
+    h.key_press(Key::Escape);
+    h.run_steps(2);
+    assert_eq!((h.state().shortcut_capture, h.state().dialog), (None, Some(Dialog::Shortcuts)));
+    // Ctrl+Shift+J it is.
+    h.state_mut().shortcut_capture = Some("view.palette");
+    h.run_steps(1);
+    h.key_press_modifiers(Modifiers::COMMAND | Modifiers::SHIFT, Key::J);
+    h.run_steps(2);
+    assert_eq!(h.state().shortcut_capture, None);
+    h.get_by_label("Ctrl+Shift+J");
+    h.key_press(Key::Escape);
+    h.run_steps(2);
+    assert_eq!(h.state().dialog, None);
+    h.key_press_modifiers(Modifiers::COMMAND, Key::K);
+    h.run_steps(2);
+    assert!(!h.state().palette_open, "the old keys do nothing now");
+    h.key_press_modifiers(Modifiers::COMMAND | Modifiers::SHIFT, Key::J);
+    h.run_steps(2);
+    assert!(h.state().palette_open, "the new keys open the palette");
+    h.key_press(Key::Escape);
+    h.run_steps(2);
+    // Kept in the settings for the next session.
+    let saved = h.state().persist();
+    let mut fresh = PdfCraftApp::new();
+    fresh.restore(&saved);
+    let palette = pdfcraft_engine::commands::command("view.palette").unwrap();
+    assert_eq!(fresh.shortcuts.get(palette).map(|s| s.label(false)), Some("Ctrl+Shift+J".to_string()));
+    // Reset all puts the default back.
+    h.state_mut().execute("help.shortcuts");
+    h.run_steps(2);
+    h.get_by_label("Reset all shortcuts").click();
+    h.run_steps(2);
+    assert_eq!(h.state().shortcuts.get(palette).map(|s| s.label(false)), Some("Ctrl+K".to_string()));
+}
+
+/// A key without Ctrl given to a command is typing while a text field has the keyboard.
+#[test]
+fn a_custom_single_key_shortcut_leaves_text_fields_their_typing() {
+    let mut h = harness();
+    {
+        let app = h.state_mut();
+        let s = pdfcraft_ui_egui::custom_shortcuts::from_press(Key::J, Modifiers::NONE, false).unwrap();
+        std::sync::Arc::make_mut(&mut app.shortcuts).assign("view.palette", s);
+    }
+    h.run_steps(1);
+    h.key_press(Key::J);
+    h.run_steps(2);
+    assert!(h.state().palette_open, "J opens the palette from the page");
+    // The palette's own field has the keyboard: J types there.
+    h.key_press(Key::J);
+    h.event(egui::Event::Text("j".into()));
+    h.run_steps(2);
+    assert!(h.state().palette_open, "typing J into the palette's field doesn't run it again");
+}

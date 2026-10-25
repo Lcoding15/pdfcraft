@@ -62,7 +62,7 @@ pub(crate) fn command_modifier_label(ctx: &egui::Context) -> &'static str {
 
 /// How a registered command's shortcut is written on this platform ("" without one).
 pub(crate) fn command_shortcut_label(ctx: &egui::Context, id: &str) -> String {
-    commands::command(id).and_then(|c| c.shortcut).map(|s| shortcut_label(ctx, s)).unwrap_or_default()
+    commands::command(id).and_then(|c| crate::custom_shortcuts::effective(ctx, c)).map(|s| shortcut_label(ctx, s)).unwrap_or_default()
 }
 
 /// A translated tooltip with a `{key}` placeholder, filled with `s` as written on this platform:
@@ -727,15 +727,16 @@ impl PdfCraftApp {
         // while the field has yet to see the Escape and discard its draft.)
         let active = self.active_ids();
         let form_typing = active.and_then(|(i, _)| self.views.get(i)).is_some_and(|v| v.forms.focus.is_some());
-        let mut specs: Vec<&CommandSpec> = COMMANDS.iter().filter(|c| c.shortcut.is_some()).collect();
-        specs.sort_by_key(|c| std::cmp::Reverse(c.shortcut.map(|s| s.modifier_count()).unwrap_or(0)));
-        for spec in specs {
-            let Some(s) = spec.shortcut else { continue };
+        let mut specs: Vec<(&CommandSpec, Shortcut)> = COMMANDS.iter().filter_map(|c| Some((c, self.shortcuts.get(c)?))).collect();
+        specs.sort_by_key(|(_, s)| std::cmp::Reverse(s.modifier_count()));
+        for (spec, s) in specs {
             // Keep the canvas's silent no-op when there is no previous/next view to visit.
             if matches!(spec.id, "view.previous_view" | "view.next_view") && !self.command_enabled(spec) {
                 continue;
             }
-            if typing && !spec.in_text {
+            // A key of the user's own without Ctrl (a letter, F5) is typing while a text field has
+            // the keyboard, whatever the command allows (#4635).
+            if typing && (!spec.in_text || (self.shortcuts.is_custom(spec.id) && !s.command && !s.mac_ctrl)) {
                 continue;
             }
             let Some(key) = Key::from_name(s.key) else { continue };
@@ -827,7 +828,10 @@ pub(crate) fn registry_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui, menu: &str
             }
             continue;
         }
-        let shortcut = spec.shortcut.or((spec.id == "edit.copy").then_some(COPY)).map(|s| shortcut_label(ui.ctx(), s)).unwrap_or_default();
+        let shortcut = crate::custom_shortcuts::effective(ui.ctx(), spec)
+            .or((spec.id == "edit.copy").then_some(COPY))
+            .map(|s| shortcut_label(ui.ctx(), s))
+            .unwrap_or_default();
         let enabled = app.command_enabled(spec);
         let resp = ui.add_enabled(enabled, egui::Button::new(label).shortcut_text(shortcut));
         if resp.clicked() {
