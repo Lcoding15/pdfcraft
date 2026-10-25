@@ -2480,6 +2480,9 @@ struct EditCtx {
     /// Fields the edit renamed to keep imported names separate (old → new), for the repair
     /// log and the undo label.
     renamed_fields: Vec<(String, String)>,
+    /// Whether a page duplication and whether a file insertion renamed any of them, for the
+    /// repair note's wording.
+    renamed_by: (bool, bool),
     /// The overlay streams the edit's applied redactions added, which alone the renderer's check
     /// leaves out.
     redaction_overlays: Vec<pdfcraft_cos::ObjRef>,
@@ -2510,6 +2513,7 @@ impl EditCtx {
             seed,
             count: 0,
             renamed_fields: Vec::new(),
+            renamed_by: (false, false),
             redaction_overlays: Vec::new(),
         }
     }
@@ -2551,17 +2555,6 @@ impl EditCtx {
     }
 }
 
-/// Whether `edit` (or a batch inside it) duplicates pages, and whether it inserts pages from a
-/// file: the two edits that can rename form fields, for the repair note's wording.
-fn renaming_edits(edit: &Edit) -> (bool, bool) {
-    match edit {
-        Edit::DuplicatePages { .. } => (true, false),
-        Edit::InsertPagesFrom { .. } => (false, true),
-        Edit::Batch { edits, .. } => edits.iter().map(renaming_edits).fold((false, false), |(d, i), (d2, i2)| (d || d2, i || i2)),
-        _ => (false, false),
-    }
-}
-
 /// Perform an edit on a working copy (the caller discards it on error).
 fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> Result<(), EditError> {
     match edit {
@@ -2575,7 +2568,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetInfo { key, value } => pdfcraft_organize::set_info(doc, key, value)?,
         Edit::DuplicatePages { pages, at, field_conflicts } => {
             // Added to, not replaced: a batch can duplicate (or insert) more than once.
-            cx.renamed_fields.extend(pdfcraft_organize::duplicate_pages_with(doc, pages, *at, *field_conflicts)?);
+            let renamed = pdfcraft_organize::duplicate_pages_with(doc, pages, *at, *field_conflicts)?;
+            cx.renamed_by.0 |= !renamed.is_empty();
+            cx.renamed_fields.extend(renamed);
         }
         Edit::ReplacePages { pages, name, bytes, src_pages } => {
             let src = open_source(name, bytes)?;
@@ -2592,6 +2587,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             // The file's bookmarks come along under one named after it, as in Combine Files.
             let title = std::path::Path::new(name).file_stem().map_or_else(|| name.clone(), |s| s.to_string_lossy().into_owned());
             let outcome = pdfcraft_organize::insert_file_pages(doc, &src, &title, &pages, *at, *field_conflicts)?;
+            cx.renamed_by.1 |= !outcome.renamed_fields.is_empty();
             cx.renamed_fields.extend(outcome.renamed_fields);
         }
         Edit::AddBookmark { parent, index, title, page, left, top } => {
@@ -4050,6 +4046,7 @@ impl Session {
             cx.js = Some(js::JsRunner::new(&next, &name));
         }
         cx.renamed_fields.clear();
+        cx.renamed_by = (false, false);
         cx.redaction_overlays.clear();
         // `next` is a copy: if the edit fails or crashes, the document is unchanged.
         guard(|| run_edit(&mut next, &edit, &mut cx))
@@ -4071,7 +4068,7 @@ impl Session {
                 let more = if more > 0 { format!(", and {more} more") } else { String::new() };
                 format!(
                     "{} renamed {} form field{} to keep their names separate ({}{more}); scripts that refer to the old names were not rewritten",
-                    match renaming_edits(&edit) {
+                    match cx.renamed_by {
                         (true, false) => "duplicated pages",
                         (false, true) => "inserted pages",
                         _ => "duplicated and inserted pages",

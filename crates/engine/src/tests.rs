@@ -1204,6 +1204,25 @@ fn a_batch_of_renaming_duplications_reports_every_rename() {
     );
 }
 
+/// CodeRabbit on #4557: the note names the step that renamed, not every kind of step in the
+/// batch: an insertion that renamed nothing doesn't make it "duplicated and inserted pages".
+#[test]
+fn a_mixed_batch_names_only_the_step_that_renamed() {
+    let mut s = Session::new().with_clock(|| 1_700_000_000);
+    let id = s.open("a.pdf", None, Arc::new(form_with_field("Text1")), None).unwrap();
+    let dup = Edit::DuplicatePages { pages: vec![0], at: None, field_conflicts: FieldConflicts::Rename };
+    let insert = Edit::InsertPagesFrom {
+        name: "b.pdf".into(),
+        bytes: Arc::new(form_with_field("Other")),
+        pages: None,
+        at: 1,
+        field_conflicts: FieldConflicts::Rename,
+    };
+    s.apply(id, Edit::Batch { label: "Mixed".into(), edits: vec![dup, insert] }).unwrap();
+    let log = s.get(id).unwrap().repair_log().to_vec();
+    assert!(log.iter().any(|l| l.starts_with("duplicated pages renamed 1 form field")), "{log:?}");
+}
+
 /// A combine reports the fields it renamed — the tool result tells callers what their scripts
 /// must call the field now — and honours a caller's choice to merge instead.
 #[test]
