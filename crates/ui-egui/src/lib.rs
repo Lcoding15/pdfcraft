@@ -721,6 +721,8 @@ pub struct PdfCraftApp {
     /// Restore last view settings when reopening documents (Preferences ▸ Documents and view;
     /// #1767): the page, zoom and page display a file was last shown with. On by default.
     pub restore_last_view: bool,
+    /// Sanitize Document on a signed file: remove its signatures too (#4622).
+    pub sanitize_remove_signatures: bool,
     /// How files were last shown, most recent first (see `last_view`).
     pub last_views: Vec<last_view::LastView>,
     /// The files open when PdfCraft last closed, read from the settings for
@@ -1146,6 +1148,7 @@ impl PdfCraftApp {
             recent: Vec::new(),
             reopen_last_session: false,
             restore_last_view: true,
+            sanitize_remove_signatures: false,
             last_views: Vec::new(),
             last_session: Default::default(),
             quit_session: None,

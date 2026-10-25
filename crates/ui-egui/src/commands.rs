@@ -503,7 +503,11 @@ impl PdfCraftApp {
             }
             "protect.remove_hidden" => self.open_remove_hidden(),
             "print.dialog" => self.open_print(),
-            "redact.sanitize" => self.dialog = Some(Dialog::Sanitize),
+            "redact.sanitize" => {
+                // Removing signatures is asked for each time, never remembered.
+                self.sanitize_remove_signatures = false;
+                self.dialog = Some(Dialog::Sanitize);
+            }
             "redact.clear" => {
                 self.apply_edit(Edit::ClearRedactions);
             }

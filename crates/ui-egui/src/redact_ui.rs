@@ -668,7 +668,9 @@ pub(crate) fn hidden_body(ui: &mut egui::Ui, d: &mut HiddenDraft, t: &Tokens) ->
 }
 
 /// Sanitize Document confirmation. Returns (sanitize, cancel).
-pub(crate) fn sanitize_body(ui: &mut egui::Ui, t: &Tokens) -> (bool, bool) {
+/// `signed`: the document holds a digital signature, which a sanitized rewrite would invalidate.
+/// Sanitizing then waits for `remove_signatures` to be ticked (#4622).
+pub(crate) fn sanitize_body(ui: &mut egui::Ui, t: &Tokens, signed: bool, remove_signatures: &mut bool) -> (bool, bool) {
     ui.set_width(440.0);
     ui.label(egui::RichText::new(tl!("Sanitize document")).font(crate::theme::semibold(18.0)));
     ui.add_space(8.0);
@@ -679,6 +681,26 @@ pub(crate) fn sanitize_body(ui: &mut egui::Ui, t: &Tokens) -> (bool, bool) {
             .small()
             .color(t.text_muted),
     );
+    if signed {
+        ui.add_space(10.0);
+        ui.label(
+            egui::RichText::new(tl!("This document is digitally signed. Sanitizing rewrites the whole file, which invalidates the signatures, so it can only go ahead without them.")).color(t.text),
+        );
+        ui.add(widgets::checkbox(
+            remove_signatures,
+            tl!("Remove the digital signatures: their fields, how they look on the page and their validation data"),
+        ));
+    }
     ui.add_space(12.0);
-    buttons(ui, "Sanitize", true)
+    let (mut ok, mut cancel) = (false, false);
+    let ready = !signed || *remove_signatures;
+    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        if ui.add_enabled_ui(ready, |ui| widgets::pill_button(ui, tl!("Sanitize"), true)).inner.clicked() {
+            ok = true;
+        }
+        if widgets::pill_button(ui, tl!("Cancel"), false).clicked() {
+            cancel = true;
+        }
+    });
+    (ok, cancel)
 }

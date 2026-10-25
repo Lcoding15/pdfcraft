@@ -1894,6 +1894,10 @@ pub enum Edit {
     },
     /// Sanitize Document: every category, then a full rewrite on save.
     Sanitize,
+    /// Sanitize Document on a signed file, removing its digital signatures (fields, widgets and
+    /// appearances, `/Perms`, `/DSS`), which a sanitized rewrite would invalidate anyway (#4622).
+    /// Allowed on signed documents, unlike every other full rewrite.
+    SanitizeRemovingSignatures,
     /// An XFA form made an ordinary (static) PDF form: the XFA packets, `/NeedsRendering` and
     /// PdfCraft's private keys go, the pages as laid out and the fields with their values
     /// stay, so every viewer shows the same form and none lays it out again. Its scripts no
@@ -2115,6 +2119,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Create link",
     "Create links",
     "Sanitize document",
+    "Sanitize document and remove signatures",
     "Flatten comments",
     "Flatten form fields",
     "Flatten",
@@ -2259,6 +2264,7 @@ impl Edit {
             Edit::RemoveLinks { .. } => Label::of("Remove all links"),
             Edit::AddLinks { links, .. } => plural("Create link", "Create links", links.len()),
             Edit::Sanitize => Label::of("Sanitize document"),
+            Edit::SanitizeRemovingSignatures => Label::of("Sanitize document and remove signatures"),
             Edit::XfaToStatic => Label::of("Convert to a static form"),
             Edit::Flatten { comments: true, fields: false } => Label::of("Flatten comments"),
             Edit::Flatten { comments: false, fields: true } => Label::of("Flatten form fields"),
@@ -2412,6 +2418,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::RemoveLinks { .. }
         | Edit::AddLinks { .. }
         | Edit::Sanitize
+        | Edit::SanitizeRemovingSignatures
         | Edit::XfaToStatic
         | Edit::SetFieldProps { .. }
         | Edit::DeleteField { .. }
@@ -2945,6 +2952,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         }
         Edit::Sanitize => {
             pdfcraft_redact::sanitize::sanitize(doc)?;
+        }
+        Edit::SanitizeRemovingSignatures => {
+            pdfcraft_redact::sanitize::sanitize_removing_signatures(doc)?;
         }
         Edit::Flatten { comments, fields } => {
             // An XFA form's fields baked into the pages: the XFA goes too, or Adobe's viewers
@@ -4096,7 +4106,9 @@ impl Session {
         // (applying redactions, changing security, sanitizing) would invalidate the signatures.
         // So does any edit to a file rebuilt from object headers: it has no chain to append to.
         let rewrites = |c: &pdfcraft_cos::Document| c.full_save_required() || c.encryption_changed();
-        if signed && ((rewrites(&next) && !rewrites(&editor.cos)) || (next.is_modified() && next.revisions().is_empty())) {
+        // Sanitizing with the signatures removed is asked for knowing that (#4622).
+        let unsigns = matches!(edit, Edit::SanitizeRemovingSignatures);
+        if signed && !unsigns && ((rewrites(&next) && !rewrites(&editor.cos)) || (next.is_modified() && next.revisions().is_empty())) {
             return Err(EditError::SignedRewrite(edit.label().to_string()));
         }
         // What this edit drew with `?` (a value or comment text its font can't draw, stored as

@@ -673,6 +673,79 @@ pub fn remove_hidden(doc: &mut Document, which: &[Hidden]) -> Result<Vec<(Hidden
 }
 
 /// Sanitize Document: remove every category of hidden information.
+/// Sanitize Document for a signed file, with its signatures removed (#4622): [`remove_signatures`],
+/// then [`sanitize`]. The signatures can't survive a sanitized rewrite, and their certificates,
+/// names and timestamps are hidden information too. Returns what [`sanitize`] removed and how
+/// many signature fields and widgets went. Signed or not, valid or not, every one goes.
+pub fn sanitize_removing_signatures(doc: &mut Document) -> Result<(Vec<(Hidden, usize)>, usize), RedactError> {
+    let signatures = remove_signatures(doc)?;
+    Ok((sanitize(doc)?, signatures))
+}
+
+/// Remove every signature field (signed or empty, document timestamps included) with its widgets
+/// and their appearance, any signature widget a page lists that the form doesn't, and the
+/// catalog's `/Perms` (DocMDP, UR3) and `/DSS`, and the form's `/SigFlags`. Returns how many
+/// fields and widgets went.
+pub fn remove_signatures(doc: &mut Document) -> Result<usize, RedactError> {
+    let mut removed = 0usize;
+    for f in pdfcraft_forms::fields(doc).into_iter().filter(|f| f.kind == pdfcraft_forms::FieldKind::Signature) {
+        pdfcraft_forms::delete_field_object(doc, f.obj)?;
+        removed = removed.saturating_add(1);
+    }
+    for p in pdfcraft_model::pages(doc) {
+        let list = annots_of(doc, &p.dict);
+        let kept: Vec<Object> = list.iter().filter(|a| !is_signature_widget(doc, a)).cloned().collect();
+        if kept.len() != list.len() {
+            removed = removed.saturating_add(list.len() - kept.len());
+            doc.update_dict(p.obj, |d| d.set(b"Annots".to_vec(), Object::Array(kept)))?;
+        }
+    }
+    if let Some((root, cat)) = catalog(doc) {
+        if cat.contains(b"Perms") || cat.contains(b"DSS") {
+            doc.update_dict(root, |d| {
+                d.remove(b"Perms");
+                d.remove(b"DSS");
+            })?;
+        }
+        match cat.get(b"AcroForm") {
+            Some(Object::Ref(af)) if doc.get(*af).as_dict().is_some_and(|d| d.contains(b"SigFlags")) => {
+                let af = *af;
+                doc.update_dict(af, |d| {
+                    d.remove(b"SigFlags");
+                })?;
+            }
+            Some(Object::Dict(af)) if af.contains(b"SigFlags") => {
+                let mut af = af.clone();
+                af.remove(b"SigFlags");
+                doc.update_dict(root, |d| d.set(b"AcroForm".to_vec(), Object::Dict(af)))?;
+            }
+            _ => {}
+        }
+    }
+    doc.require_full_save();
+    Ok(removed)
+}
+
+/// Whether `a` is a widget of a signature field: its own `/FT`, or the nearest one up its
+/// `/Parent` chain, is `/Sig` (bounded, and a cycle ends the walk).
+fn is_signature_widget(doc: &Document, a: &Object) -> bool {
+    let Some(d) = doc.resolve(a).as_dict().cloned() else { return false };
+    if d.get(b"Subtype").and_then(Object::as_name) != Some(b"Widget".as_slice()) {
+        return false;
+    }
+    let mut node = d;
+    let mut seen = std::collections::HashSet::new();
+    for _ in 0..64 {
+        if let Some(ft) = node.get(b"FT").map(|o| doc.resolve(o)) {
+            return ft.as_name() == Some(b"Sig".as_slice());
+        }
+        let Some(parent) = node.reference(b"Parent").filter(|r| seen.insert(*r)) else { return false };
+        let Some(next) = doc.get(parent).as_dict().cloned() else { return false };
+        node = next;
+    }
+    false
+}
+
 pub fn sanitize(doc: &mut Document) -> Result<Vec<(Hidden, usize)>, RedactError> {
     match remove_hidden(doc, &HIDDEN) {
         // Nothing hidden is fine for Sanitize: the full rewrite still drops old revisions.
