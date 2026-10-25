@@ -180,7 +180,7 @@ impl Overrides {
     /// Give command `id` the shortcut `s`. Another command that had it loses it; that command is
     /// returned so the change can be said. Unknown commands change nothing.
     pub fn assign(&mut self, id: &str, s: Shortcut) -> Option<&'static CommandSpec> {
-        let spec = pdfcraft_engine::commands::command(id)?;
+        let spec = pdfcraft_engine::commands::command(id).filter(|c| !FIXED.contains(&c.id))?;
         let taken = self.holder(s).filter(|c| c.id != spec.id);
         if let Some(other) = taken {
             self.set(other, None);
@@ -284,12 +284,12 @@ fn allowed(s: Shortcut) -> bool {
 
 /// Make `overrides` the bindings this frame's menus, tooltips and keys use.
 pub(crate) fn publish(ctx: &egui::Context, overrides: &Arc<Overrides>) {
-    ctx.data_mut(|d| d.insert_temp(egui::Id::new(DATA_ID), Arc::clone(overrides)));
+    ctx.data_mut(|d| d.insert_temp(egui::Id::unique(DATA_ID), Arc::clone(overrides)));
 }
 
 /// The shortcut `spec` runs on in this context: the published one, or its default.
 pub(crate) fn effective(ctx: &egui::Context, spec: &CommandSpec) -> Option<Shortcut> {
-    match ctx.data(|d| d.get_temp::<Arc<Overrides>>(egui::Id::new(DATA_ID))) {
+    match ctx.data(|d| d.get_temp::<Arc<Overrides>>(egui::Id::unique(DATA_ID))) {
         Some(o) => o.get(spec),
         None => spec.shortcut,
     }
@@ -335,7 +335,7 @@ pub(crate) fn capture(ctx: &egui::Context, app: &mut crate::PdfCraftApp) {
 /// Remove or Reset where they apply. Commands without a key are listed when the search finds
 /// them, so one can be given a key.
 pub(crate) fn rows_ui(ui: &mut egui::Ui, app: &mut crate::PdfCraftApp, t: &crate::theme::Tokens) {
-    let search_id = egui::Id::new("shortcut-search");
+    let search_id = egui::Id::unique("shortcut-search");
     let mut search = ui.data_mut(|d| d.get_temp::<String>(search_id)).unwrap_or_default();
     ui.horizontal(|ui| {
         let l = ui.label(tl!("Find a command"));
