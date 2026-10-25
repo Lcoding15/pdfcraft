@@ -2546,3 +2546,21 @@ animation effects	Off	Ανενεργά
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Σήμερα
 @plural	{n} reply|{n} replies	{n} απάντηση|{n} απαντήσεις
+
+# Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
+	Change	Αλλαγή
+	Reset	Επαναφορά
+	Reset all shortcuts	Επαναφορά όλων των συντομεύσεων
+	Back to the default keys	Επιστροφή στα προεπιλεγμένα πλήκτρα
+	Find a command	Εύρεση εντολής
+	Keys of the document view	Πλήκτρα της προβολής εγγράφου
+	Choose new keys for {command}	Επιλέξτε νέα πλήκτρα για {command}
+	Press the new keys (Esc cancels)	Πατήστε τα νέα πλήκτρα (Esc για ακύρωση)
+	Alt combinations can't be shortcuts. Try Ctrl or Shift.	Οι συνδυασμοί με Alt δεν μπορούν να είναι συντομεύσεις. Δοκιμάστε Ctrl ή Shift.
+	This key moves around the interface on its own. Add Ctrl to use it.	Αυτό το πλήκτρο μετακινείται μόνο του στη διεπαφή. Προσθέστε Ctrl για να το χρησιμοποιήσετε.
+	This key is used for “{what}” and can't be changed.	Αυτό το πλήκτρο χρησιμοποιείται για «{what}» και δεν μπορεί να αλλάξει.
+	{key} was taken from “{other}”, which now has no shortcut.	Το {key} πάρθηκε από «{other}», που τώρα δεν έχει συντόμευση.
+	Select tool	Εργαλείο επιλογής
+	Hand tool	Εργαλείο χεριού
+	Scroll the page	Κύλιση σελίδας
+	Delete the selection	Διαγραφή επιλογής

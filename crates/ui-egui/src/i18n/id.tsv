@@ -2778,3 +2778,21 @@ theme	Appearance	Tampilan
 	Delete attachment	Hapus lampiran
 	Delete attachment {key}	Hapus lampiran {key}
 @plural	{n} reply|{n} replies	{n} balasan
+
+# Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
+	Change	Ubah
+	Reset	Atur ulang
+	Reset all shortcuts	Atur ulang semua pintasan
+	Back to the default keys	Kembali ke tombol bawaan
+	Find a command	Cari perintah
+	Keys of the document view	Tombol tampilan dokumen
+	Choose new keys for {command}	Pilih tombol baru untuk {command}
+	Press the new keys (Esc cancels)	Tekan tombol baru (Esc membatalkan)
+	Alt combinations can't be shortcuts. Try Ctrl or Shift.	Kombinasi Alt tidak dapat menjadi pintasan. Coba Ctrl atau Shift.
+	This key moves around the interface on its own. Add Ctrl to use it.	Tombol ini bergerak di antarmuka dengan sendirinya. Tambahkan Ctrl untuk menggunakannya.
+	This key is used for “{what}” and can't be changed.	Tombol ini digunakan untuk “{what}” dan tidak dapat diubah.
+	{key} was taken from “{other}”, which now has no shortcut.	{key} diambil dari “{other}”, yang sekarang tidak punya pintasan.
+	Select tool	Alat pilih
+	Hand tool	Alat tangan
+	Scroll the page	Gulir halaman
+	Delete the selection	Hapus pilihan

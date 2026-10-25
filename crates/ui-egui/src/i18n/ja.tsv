@@ -2540,3 +2540,21 @@ animation effects	Off	オフ
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	今日
 @plural	{n} reply|{n} replies	{n} 件の返信
+
+# Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
+	Change	変更
+	Reset	リセット
+	Reset all shortcuts	すべてのショートカットをリセット
+	Back to the default keys	既定のキーに戻す
+	Find a command	コマンドを検索
+	Keys of the document view	文書表示のキー
+	Choose new keys for {command}	{command} の新しいキーを選択
+	Press the new keys (Esc cancels)	新しいキーを押してください（Esc でキャンセル）
+	Alt combinations can't be shortcuts. Try Ctrl or Shift.	Alt の組み合わせはショートカットにできません。Ctrl または Shift を試してください。
+	This key moves around the interface on its own. Add Ctrl to use it.	このキーは単独でインターフェイス内を移動します。使うには Ctrl を加えてください。
+	This key is used for “{what}” and can't be changed.	このキーは「{what}」に使われていて変更できません。
+	{key} was taken from “{other}”, which now has no shortcut.	{key} を「{other}」から移しました。そちらにはショートカットがなくなりました。
+	Select tool	選択ツール
+	Hand tool	手のひらツール
+	Scroll the page	ページをスクロール
+	Delete the selection	選択範囲を削除

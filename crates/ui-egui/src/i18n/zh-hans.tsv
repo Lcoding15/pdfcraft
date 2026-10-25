@@ -2504,3 +2504,21 @@ animation effects	Off	关
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	今天
 @plural	{n} reply|{n} replies	{n} 条回复
+
+# Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
+	Change	更改
+	Reset	重置
+	Reset all shortcuts	重置所有快捷键
+	Back to the default keys	恢复为默认按键
+	Find a command	查找命令
+	Keys of the document view	文档视图的按键
+	Choose new keys for {command}	为 {command} 选择新按键
+	Press the new keys (Esc cancels)	按下新按键（Esc 取消）
+	Alt combinations can't be shortcuts. Try Ctrl or Shift.	Alt 组合不能作为快捷键。请尝试 Ctrl 或 Shift。
+	This key moves around the interface on its own. Add Ctrl to use it.	此键单独使用时用于在界面中移动。添加 Ctrl 后即可使用。
+	This key is used for “{what}” and can't be changed.	此键用于“{what}”，无法更改。
+	{key} was taken from “{other}”, which now has no shortcut.	已从“{other}”取走 {key}，该命令现在没有快捷键。
+	Select tool	选择工具
+	Hand tool	手形工具
+	Scroll the page	滚动页面
+	Delete the selection	删除所选内容

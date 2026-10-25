@@ -2536,3 +2536,21 @@ animation effects	Off	Kapalı
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Bugün
 @plural	{n} reply|{n} replies	{n} yanıt
+
+# Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
+	Change	Değiştir
+	Reset	Sıfırla
+	Reset all shortcuts	Tüm kısayolları sıfırla
+	Back to the default keys	Varsayılan tuşlara dön
+	Find a command	Komut bul
+	Keys of the document view	Belge görünümünün tuşları
+	Choose new keys for {command}	{command} için yeni tuşlar seçin
+	Press the new keys (Esc cancels)	Yeni tuşlara basın (Esc iptal eder)
+	Alt combinations can't be shortcuts. Try Ctrl or Shift.	Alt birleşimleri kısayol olamaz. Ctrl veya Shift deneyin.
+	This key moves around the interface on its own. Add Ctrl to use it.	Bu tuş tek başına arayüzde gezinir. Kullanmak için Ctrl ekleyin.
+	This key is used for “{what}” and can't be changed.	Bu tuş “{what}” için kullanılıyor ve değiştirilemez.
+	{key} was taken from “{other}”, which now has no shortcut.	{key}, artık kısayolu olmayan “{other}” komutundan alındı.
+	Select tool	Seçim aracı
+	Hand tool	El aracı
+	Scroll the page	Sayfayı kaydır
+	Delete the selection	Seçimi sil

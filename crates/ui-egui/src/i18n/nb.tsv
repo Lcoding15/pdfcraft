@@ -2716,3 +2716,21 @@ key	Space	Mellomrom
 # AI-assisted additions for restoring the last view (#1767) (2026-10-22); not reviewed by a native speaker.
 	Restore the last view (page, zoom and page display) when a document is opened again	Gjenopprett den siste visningen (side, zoom og sidevisning) når et dokument åpnes igjen
 @plural	{n} reply|{n} replies	{n} svar|{n} svar
+
+# Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
+	Change	Endre
+	Reset	Tilbakestill
+	Reset all shortcuts	Tilbakestill alle hurtigtaster
+	Back to the default keys	Tilbake til standardtastene
+	Find a command	Finn en kommando
+	Keys of the document view	Tastene i dokumentvisningen
+	Choose new keys for {command}	Velg nye taster for {command}
+	Press the new keys (Esc cancels)	Trykk de nye tastene (Esc avbryter)
+	Alt combinations can't be shortcuts. Try Ctrl or Shift.	Alt-kombinasjoner kan ikke være hurtigtaster. Prøv Ctrl eller Shift.
+	This key moves around the interface on its own. Add Ctrl to use it.	Denne tasten flytter rundt i grensesnittet alene. Legg til Ctrl for å bruke den.
+	This key is used for “{what}” and can't be changed.	Denne tasten brukes til «{what}» og kan ikke endres.
+	{key} was taken from “{other}”, which now has no shortcut.	{key} ble tatt fra «{other}», som nå ikke har noen hurtigtast.
+	Select tool	Merkeverktøy
+	Hand tool	Håndverktøy
+	Scroll the page	Rull siden
+	Delete the selection	Slett utvalget

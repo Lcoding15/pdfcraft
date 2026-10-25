@@ -2453,3 +2453,21 @@ animation effects	Off	Выкл
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Сегодня
 @plural	{n} reply|{n} replies	{n} ответ|{n} ответа|{n} ответов
+
+# Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
+	Change	Изменить
+	Reset	Сбросить
+	Reset all shortcuts	Сбросить все сочетания клавиш
+	Back to the default keys	Вернуть клавиши по умолчанию
+	Find a command	Найти команду
+	Keys of the document view	Клавиши просмотра документа
+	Choose new keys for {command}	Выберите новые клавиши для {command}
+	Press the new keys (Esc cancels)	Нажмите новые клавиши (Esc — отмена)
+	Alt combinations can't be shortcuts. Try Ctrl or Shift.	Сочетания с Alt не могут быть сочетаниями клавиш. Попробуйте Ctrl или Shift.
+	This key moves around the interface on its own. Add Ctrl to use it.	Эта клавиша сама по себе перемещает по интерфейсу. Добавьте Ctrl, чтобы использовать её.
+	This key is used for “{what}” and can't be changed.	Эта клавиша используется для «{what}» и не может быть изменена.
+	{key} was taken from “{other}”, which now has no shortcut.	{key} забрано у «{other}», у которой теперь нет сочетания клавиш.
+	Select tool	Инструмент выделения
+	Hand tool	Инструмент «Рука»
+	Scroll the page	Прокрутить страницу
+	Delete the selection	Удалить выделенное

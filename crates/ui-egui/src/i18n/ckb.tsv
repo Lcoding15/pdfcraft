@@ -2732,3 +2732,21 @@ certificate	Version	وەشان
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	ئەمڕۆ
 @plural	{n} reply|{n} replies	{n} وەڵام|{n} وەڵام
+
+# Keyboard shortcuts dialog: custom shortcuts (#4635) (AI-assisted, not separately native-reviewed)
+	Change	گۆڕین
+	Reset	ڕێکخستنەوە
+	Reset all shortcuts	ڕێکخستنەوەی هەموو کورتەڕێکان
+	Back to the default keys	گەڕانەوە بۆ کلیلە بنەڕەتییەکان
+	Find a command	گەڕان بەدوای فەرمانێک
+	Keys of the document view	کلیلەکانی پیشاندانی بەڵگەنامە
+	Choose new keys for {command}	کلیلی نوێ بۆ {command} هەڵبژێرە
+	Press the new keys (Esc cancels)	کلیلە نوێیەکان دابگرە (Esc هەڵدەوەشێنێتەوە)
+	Alt combinations can't be shortcuts. Try Ctrl or Shift.	تێکەڵەکانی Alt ناتوانن کورتەڕێ بن. Ctrl یان Shift تاقی بکەرەوە.
+	This key moves around the interface on its own. Add Ctrl to use it.	ئەم کلیلە بە تەنها لە ڕووکاردا دەجووڵێت. Ctrl زیاد بکە بۆ بەکارهێنانی.
+	This key is used for “{what}” and can't be changed.	ئەم کلیلە بۆ «{what}» بەکاردێت و ناگۆڕدرێت.
+	{key} was taken from “{other}”, which now has no shortcut.	{key} لە «{other}» وەرگیرا، کە ئێستا هیچ کورتەڕێیەکی نییە.
+	Select tool	ئامرازی هەڵبژاردن
+	Hand tool	ئامرازی دەست
+	Scroll the page	خشاندنی پەڕە
+	Delete the selection	سڕینەوەی هەڵبژاردە
