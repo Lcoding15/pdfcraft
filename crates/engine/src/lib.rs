@@ -2551,7 +2551,6 @@ impl EditCtx {
     }
 }
 
-/// Perform an edit on a working copy (the caller discards it on error).
 /// Whether `edit` (or a batch inside it) duplicates pages, and whether it inserts pages from a
 /// file: the two edits that can rename form fields, for the repair note's wording.
 fn renaming_edits(edit: &Edit) -> (bool, bool) {
@@ -2563,6 +2562,7 @@ fn renaming_edits(edit: &Edit) -> (bool, bool) {
     }
 }
 
+/// Perform an edit on a working copy (the caller discards it on error).
 fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> Result<(), EditError> {
     match edit {
         Edit::RotatePages { pages, degrees } => pdfcraft_organize::rotate_pages(doc, pages, *degrees)?,
