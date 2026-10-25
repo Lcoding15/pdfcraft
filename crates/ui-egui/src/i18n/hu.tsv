@@ -2547,3 +2547,8 @@ animation effects	Off	Ki
 	Rotate the selected pages clockwise	A kijelölt oldalak forgatása az óramutató járásával megegyezően
 	Extract the selected pages…	A kijelölt oldalak kibontása…
 	Delete the selected pages	A kijelölt oldalak törlése
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Oldalak megkettőzése új mezőnevekkel
+	Duplicate pages — 1 field renamed	Oldalak megkettőzése — 1 mező átnevezve
+	Duplicate pages — fields renamed	Oldalak megkettőzése — mezők átnevezve

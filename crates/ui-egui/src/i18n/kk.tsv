@@ -2546,3 +2546,8 @@ animation effects	Off	Өшірулі
 	Rotate the selected pages clockwise	Таңдалған беттерді сағат тілімен бұру
 	Extract the selected pages…	Таңдалған беттерді шығарып алу…
 	Delete the selected pages	Таңдалған беттерді жою
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Беттерді жаңа өріс атауларымен көшірмелеу
+	Duplicate pages — 1 field renamed	Беттерді көшірмелеу — 1 өріс қайта аталды
+	Duplicate pages — fields renamed	Беттерді көшірмелеу — өрістер қайта аталды

@@ -2553,3 +2553,8 @@ animation effects	Off	Izklopljeni
 	Rotate the selected pages clockwise	Zavrti izbrane strani v smeri urnega kazalca
 	Extract the selected pages…	Izvleci izbrane strani…
 	Delete the selected pages	Izbriši izbrane strani
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Podvoji strani z novimi imeni polj
+	Duplicate pages — 1 field renamed	Podvoji strani — 1 polje preimenovano
+	Duplicate pages — fields renamed	Podvoji strani — polja preimenovana

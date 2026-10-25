@@ -2818,3 +2818,8 @@ theme	Appearance	Teema
 	Rotate the selected pages clockwise	Kierrä valittuja sivuja myötäpäivään
 	Extract the selected pages…	Pura valitut sivut…
 	Delete the selected pages	Poista valitut sivut
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Monista sivut uusin kenttänimin
+	Duplicate pages — 1 field renamed	Monista sivut — 1 kenttä nimetty uudelleen
+	Duplicate pages — fields renamed	Monista sivut — kenttiä nimetty uudelleen

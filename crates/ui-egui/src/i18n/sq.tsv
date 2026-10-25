@@ -2535,3 +2535,8 @@ animation effects	Off	Joaktiv
 	Rotate the selected pages clockwise	Rrotullo faqet e përzgjedhura në drejtim të orës
 	Extract the selected pages…	Nxirr faqet e përzgjedhura…
 	Delete the selected pages	Fshi faqet e përzgjedhura
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Dyfisho faqet me emra të rinj fushash
+	Duplicate pages — 1 field renamed	Dyfisho faqet — 1 fushë u riemërua
+	Duplicate pages — fields renamed	Dyfisho faqet — fushat u riemëruan

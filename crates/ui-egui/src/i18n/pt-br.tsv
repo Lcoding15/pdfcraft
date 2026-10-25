@@ -2833,3 +2833,8 @@ theme	Appearance	Aparência
 	Rotate the selected pages clockwise	Girar as páginas selecionadas no sentido horário
 	Extract the selected pages…	Extrair as páginas selecionadas…
 	Delete the selected pages	Excluir as páginas selecionadas
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Duplicar páginas com novos nomes de campo
+	Duplicate pages — 1 field renamed	Duplicar páginas — 1 campo renomeado
+	Duplicate pages — fields renamed	Duplicar páginas — campos renomeados

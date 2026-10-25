@@ -2570,3 +2570,8 @@ animation effects	Off	Вимкнено
 	Rotate the selected pages clockwise	Повернути вибрані сторінки за годинниковою стрілкою
 	Extract the selected pages…	Витягнути вибрані сторінки…
 	Delete the selected pages	Видалити вибрані сторінки
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Дублювати сторінки з новими назвами полів
+	Duplicate pages — 1 field renamed	Дублювати сторінки — 1 поле перейменовано
+	Duplicate pages — fields renamed	Дублювати сторінки — поля перейменовано

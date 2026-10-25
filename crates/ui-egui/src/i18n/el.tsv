@@ -2554,3 +2554,8 @@ animation effects	Off	Ανενεργά
 	Rotate the selected pages clockwise	Περιστροφή των επιλεγμένων σελίδων δεξιόστροφα
 	Extract the selected pages…	Εξαγωγή των επιλεγμένων σελίδων…
 	Delete the selected pages	Διαγραφή των επιλεγμένων σελίδων
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Δημιουργία αντιγράφων σελίδων με νέα ονόματα πεδίων
+	Duplicate pages — 1 field renamed	Δημιουργία αντιγράφων σελίδων — μετονομάστηκε 1 πεδίο
+	Duplicate pages — fields renamed	Δημιουργία αντιγράφων σελίδων — μετονομάστηκαν πεδία

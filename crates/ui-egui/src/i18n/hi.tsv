@@ -2785,3 +2785,8 @@ theme	Appearance	स्वरूप
 	Rotate the selected pages clockwise	चयनित पृष्ठों को दक्षिणावर्त घुमाएँ
 	Extract the selected pages…	चयनित पृष्ठ निकालें…
 	Delete the selected pages	चयनित पृष्ठ हटाएँ
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	नए फ़ील्ड नामों के साथ पृष्ठ डुप्लिकेट करें
+	Duplicate pages — 1 field renamed	पृष्ठ डुप्लिकेट करें — 1 फ़ील्ड का नाम बदला गया
+	Duplicate pages — fields renamed	पृष्ठ डुप्लिकेट करें — फ़ील्ड के नाम बदले गए

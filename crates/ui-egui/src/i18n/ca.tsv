@@ -2809,3 +2809,8 @@ theme	Appearance	Aspecte
 	Rotate the selected pages clockwise	Gira les pàgines seleccionades en sentit horari
 	Extract the selected pages…	Extreu les pàgines seleccionades…
 	Delete the selected pages	Suprimeix les pàgines seleccionades
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Duplica pàgines amb noms de camp nous
+	Duplicate pages — 1 field renamed	Duplica pàgines — 1 camp s'ha reanomenat
+	Duplicate pages — fields renamed	Duplica pàgines — camps reanomenats

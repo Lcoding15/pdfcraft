@@ -2785,3 +2785,8 @@ theme	Appearance	모양
 	Rotate the selected pages clockwise	선택한 페이지를 시계 방향으로 회전
 	Extract the selected pages…	선택한 페이지 추출…
 	Delete the selected pages	선택한 페이지 삭제
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	새 필드 이름으로 페이지 복제
+	Duplicate pages — 1 field renamed	페이지 복제 — 필드 1개 이름 변경됨
+	Duplicate pages — fields renamed	페이지 복제 — 필드 이름 변경됨

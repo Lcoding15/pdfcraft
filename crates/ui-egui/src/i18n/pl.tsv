@@ -2644,3 +2644,8 @@ animation effects	Off	Wyłączone
 	Rotate the selected pages clockwise	Obróć zaznaczone strony w prawo
 	Extract the selected pages…	Wyodrębnij zaznaczone strony…
 	Delete the selected pages	Usuń zaznaczone strony
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Powiel strony z nowymi nazwami pól
+	Duplicate pages — 1 field renamed	Powiel strony — zmieniono nazwę 1 pola
+	Duplicate pages — fields renamed	Powiel strony — zmieniono nazwy pól

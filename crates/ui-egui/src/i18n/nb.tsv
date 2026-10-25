@@ -2724,3 +2724,8 @@ key	Space	Mellomrom
 	Rotate the selected pages clockwise	Roter de valgte sidene med klokken
 	Extract the selected pages…	Trekk ut de valgte sidene…
 	Delete the selected pages	Slett de valgte sidene
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Dupliser sider med nye feltnavn
+	Duplicate pages — 1 field renamed	Dupliser sider — 1 felt fikk nytt navn
+	Duplicate pages — fields renamed	Dupliser sider — felt fikk nytt navn

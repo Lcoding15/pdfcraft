@@ -2855,3 +2855,8 @@ certificate	Version	Verze
 	Rotate the selected pages clockwise	Otočit vybrané stránky po směru hodinových ručiček
 	Extract the selected pages…	Extrahovat vybrané stránky…
 	Delete the selected pages	Odstranit vybrané stránky
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Duplikovat stránky s novými názvy polí
+	Duplicate pages — 1 field renamed	Duplikovat stránky — 1 pole přejmenováno
+	Duplicate pages — fields renamed	Duplikovat stránky — pole přejmenována

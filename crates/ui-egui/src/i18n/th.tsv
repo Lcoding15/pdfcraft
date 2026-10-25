@@ -2711,3 +2711,8 @@ theme	Appearance	ลักษณะที่ปรากฏ
 	Rotate the selected pages clockwise	หมุนหน้าที่เลือกตามเข็มนาฬิกา
 	Extract the selected pages…	แยกหน้าที่เลือกออก…
 	Delete the selected pages	ลบหน้าที่เลือก
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	ทำสำเนาหน้าด้วยชื่อช่องใหม่
+	Duplicate pages — 1 field renamed	ทำสำเนาหน้า — เปลี่ยนชื่อ 1 ช่อง
+	Duplicate pages — fields renamed	ทำสำเนาหน้า — มีการเปลี่ยนชื่อช่อง

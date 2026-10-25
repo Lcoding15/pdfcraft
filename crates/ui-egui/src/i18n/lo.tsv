@@ -2456,3 +2456,8 @@ animation effects	Off	ປິດ
 	Rotate the selected pages clockwise	ໝູນໜ້າທີ່ເລືອກຕາມເຂັມໂມງ
 	Extract the selected pages…	ແຍກໜ້າທີ່ເລືອກອອກ…
 	Delete the selected pages	ລຶບໜ້າທີ່ເລືອກ
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	ສຳເນົາໜ້າຊ້ຳດ້ວຍຊື່ຊ່ອງຂໍ້ມູນໃໝ່
+	Duplicate pages — 1 field renamed	ສຳເນົາໜ້າຊ້ຳ — ປ່ຽນຊື່ແລ້ວ 1 ຊ່ອງ
+	Duplicate pages — fields renamed	ສຳເນົາໜ້າຊ້ຳ — ປ່ຽນຊື່ຊ່ອງຂໍ້ມູນແລ້ວ

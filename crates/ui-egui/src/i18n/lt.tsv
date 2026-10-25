@@ -2809,3 +2809,8 @@ theme	Appearance	Išvaizda
 	Rotate the selected pages clockwise	Pasukti pasirinktus puslapius pagal laikrodžio rodyklę
 	Extract the selected pages…	Išskleisti pasirinktus puslapius…
 	Delete the selected pages	Ištrinti pasirinktus puslapius
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Dubliuoti puslapius su naujais laukų pavadinimais
+	Duplicate pages — 1 field renamed	Dubliuoti puslapius — pervadintas 1 laukas
+	Duplicate pages — fields renamed	Dubliuoti puslapius — laukai pervadinti

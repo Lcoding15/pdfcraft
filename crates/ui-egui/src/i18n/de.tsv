@@ -2549,3 +2549,8 @@ animation effects	Off	Aus
 	Rotate the selected pages clockwise	Ausgewählte Seiten im Uhrzeigersinn drehen
 	Extract the selected pages…	Ausgewählte Seiten extrahieren…
 	Delete the selected pages	Ausgewählte Seiten löschen
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Seiten mit neuen Feldnamen duplizieren
+	Duplicate pages — 1 field renamed	Seiten duplizieren — 1 Feld umbenannt
+	Duplicate pages — fields renamed	Seiten duplizieren — Felder umbenannt

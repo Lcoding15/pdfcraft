@@ -2498,3 +2498,8 @@ animation effects	Off	關
 	Rotate the selected pages clockwise	順時針旋轉所選頁面
 	Extract the selected pages…	擷取所選頁面…
 	Delete the selected pages	刪除所選頁面
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	以新的欄位名稱複製頁面
+	Duplicate pages — 1 field renamed	複製頁面 — 已重新命名 1 個欄位
+	Duplicate pages — fields renamed	複製頁面 — 已重新命名欄位

@@ -2461,3 +2461,8 @@ animation effects	Off	Выкл
 	Rotate the selected pages clockwise	Повернуть выбранные страницы по часовой стрелке
 	Extract the selected pages…	Извлечь выбранные страницы…
 	Delete the selected pages	Удалить выбранные страницы
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Дублировать страницы с новыми именами полей
+	Duplicate pages — 1 field renamed	Дублировать страницы — 1 поле переименовано
+	Duplicate pages — fields renamed	Дублировать страницы — поля переименованы

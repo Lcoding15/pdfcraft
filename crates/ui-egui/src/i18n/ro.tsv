@@ -2809,3 +2809,8 @@ theme	Appearance	Aspect
 	Rotate the selected pages clockwise	Rotește paginile selectate în sens orar
 	Extract the selected pages…	Extrage paginile selectate…
 	Delete the selected pages	Șterge paginile selectate
+
+# Duplicate pages with new field names (#2228) (AI-assisted, not separately native-reviewed)
+	Duplicate pages with new field names	Duplicare pagini cu nume noi de câmpuri
+	Duplicate pages — 1 field renamed	Duplicare pagini: 1 câmp redenumit
+	Duplicate pages — fields renamed	Duplicare pagini: câmpuri redenumite
