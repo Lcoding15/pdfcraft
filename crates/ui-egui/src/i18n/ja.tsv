@@ -2541,6 +2541,14 @@ animation effects	Off	オフ
 	Today	今日
 @plural	{n} reply|{n} replies	{n} 件の返信
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	ページツール
+	Insert pages from a file after the selection…	選択範囲の後にファイルからページを挿入…
+	Rotate the selected pages counterclockwise	選択したページを反時計回りに回転
+	Rotate the selected pages clockwise	選択したページを時計回りに回転
+	Extract the selected pages…	選択したページを抽出…
+	Delete the selected pages	選択したページを削除
+
 # Sanitize: removing a signed document's signatures (#4622) (AI-assisted, not separately native-reviewed)
 	Sanitize document and remove signatures	文書の機密情報と署名を削除
 	Sanitize document and flatten signatures	文書の機密情報を削除して署名を平坦化

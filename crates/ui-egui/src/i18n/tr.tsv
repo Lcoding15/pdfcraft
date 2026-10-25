@@ -2537,6 +2537,14 @@ animation effects	Off	Kapalı
 	Today	Bugün
 @plural	{n} reply|{n} replies	{n} yanıt
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Sayfa araçları
+	Insert pages from a file after the selection…	Seçimin ardından dosyadan sayfa ekle…
+	Rotate the selected pages counterclockwise	Seçili sayfaları saat yönünün tersine döndür
+	Rotate the selected pages clockwise	Seçili sayfaları saat yönünde döndür
+	Extract the selected pages…	Seçili sayfaları ayıkla…
+	Delete the selected pages	Seçili sayfaları sil
+
 # Sanitize: removing a signed document's signatures (#4622) (AI-assisted, not separately native-reviewed)
 	Sanitize document and remove signatures	Belgeyi temizle ve imzaları kaldır
 	Sanitize document and flatten signatures	Belgeyi temizle ve imzaları düzleştir

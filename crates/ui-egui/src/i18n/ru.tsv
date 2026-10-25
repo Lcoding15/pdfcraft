@@ -2454,6 +2454,14 @@ animation effects	Off	Выкл
 	Today	Сегодня
 @plural	{n} reply|{n} replies	{n} ответ|{n} ответа|{n} ответов
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Инструменты страниц
+	Insert pages from a file after the selection…	Вставить страницы из файла после выделения…
+	Rotate the selected pages counterclockwise	Повернуть выбранные страницы против часовой стрелки
+	Rotate the selected pages clockwise	Повернуть выбранные страницы по часовой стрелке
+	Extract the selected pages…	Извлечь выбранные страницы…
+	Delete the selected pages	Удалить выбранные страницы
+
 # Sanitize: removing a signed document's signatures (#4622) (AI-assisted, not separately native-reviewed)
 	Sanitize document and remove signatures	Очистить документ и удалить подписи
 	Sanitize document and flatten signatures	Очистить документ и сделать подписи частью страницы

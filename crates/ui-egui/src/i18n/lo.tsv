@@ -2449,6 +2449,14 @@ animation effects	Off	ປິດ
 	Today	ມື້ນີ້
 @plural	{n} reply|{n} replies	ການຕອບກັບ {n} ລາຍການ
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	ເຄື່ອງມືໜ້າ
+	Insert pages from a file after the selection…	ແຊກໜ້າຈາກໄຟລ໌ຫຼັງການເລືອກ…
+	Rotate the selected pages counterclockwise	ໝູນໜ້າທີ່ເລືອກທວນເຂັມໂມງ
+	Rotate the selected pages clockwise	ໝູນໜ້າທີ່ເລືອກຕາມເຂັມໂມງ
+	Extract the selected pages…	ແຍກໜ້າທີ່ເລືອກອອກ…
+	Delete the selected pages	ລຶບໜ້າທີ່ເລືອກ
+
 # Sanitize: removing a signed document's signatures (#4622) (AI-assisted, not separately native-reviewed)
 	Sanitize document and remove signatures	ລຶບລ້າງຂໍ້ມູນລັບໃນເອກະສານ ແລະ ລຶບລາຍເຊັນ
 	Sanitize document and flatten signatures	ລຶບລ້າງຂໍ້ມູນລັບໃນເອກະສານ ແລະ ແປງລາຍເຊັນເປັນເນື້ອຫາ
