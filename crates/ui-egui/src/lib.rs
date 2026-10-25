@@ -718,6 +718,9 @@ pub struct PdfCraftApp {
     pub recent: Vec<RecentFile>,
     /// Preferences: reopen the files that were open when PdfCraft last closed (#442).
     pub reopen_last_session: bool,
+    /// Pinned tabs (#2926): the files (absolute paths) whose tabs are pinned. They open at
+    /// every start, first in the tab strip, until unpinned.
+    pub pinned_tabs: Vec<String>,
     /// Restore last view settings when reopening documents (Preferences ▸ Documents and view;
     /// #1767): the page, zoom and page display a file was last shown with. On by default.
     pub restore_last_view: bool,
@@ -1145,6 +1148,7 @@ impl PdfCraftApp {
             all_tools_tab: (None, false),
             recent: Vec::new(),
             reopen_last_session: false,
+            pinned_tabs: Vec::new(),
             restore_last_view: true,
             last_views: Vec::new(),
             last_session: Default::default(),
@@ -2618,6 +2622,7 @@ impl PdfCraftApp {
             "docking_right": self.right,
             "recent": self.recent,
             "reopen_last_session": self.reopen_last_session,
+            "pinned_tabs": self.pinned_tabs,
             "restore_last_view": self.restore_last_view,
             "last_views": self.last_views_to_save(),
             // Kept only while the preference is on.
@@ -2720,6 +2725,7 @@ impl PdfCraftApp {
         if let Some(on) = v["reopen_last_session"].as_bool() {
             self.reopen_last_session = on;
         }
+        self.pinned_tabs = tab_context::pinned_from_json(&v["pinned_tabs"]);
         if let Some(on) = v["restore_last_view"].as_bool() {
             self.restore_last_view = on;
         }

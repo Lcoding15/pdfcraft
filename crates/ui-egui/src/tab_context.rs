@@ -1,13 +1,54 @@
-//! PDF-tab actions. Closed history contains paths only, never bytes or passwords.
+//! PDF-tab actions. Closed history and pinned tabs contain paths only, never bytes or passwords.
 use pdfcraft_engine::DocId;
 
 pub(crate) enum Action {
     Close(DocId),
     Reopen,
     Reveal(DocId),
+    /// Pin the tab (#2926): its file opens at every start, first in the tab strip.
+    Pin(DocId),
+    Unpin(DocId),
+}
+
+/// The most files kept pinned: a settings file listing more is read up to here.
+const MAX_PINNED: usize = 64;
+
+/// How a pinned file is kept: its absolute path, so a file opened by a relative path matches.
+/// The web has no paths to make absolute.
+fn pin_key(path: &str) -> String {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        crate::last_session::absolute(path)
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        path.to_string()
+    }
+}
+
+/// The pinned files a settings file lists: text entries only, each once, at most [`MAX_PINNED`].
+pub(crate) fn pinned_from_json(v: &serde_json::Value) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for path in v.as_array().into_iter().flatten().filter_map(serde_json::Value::as_str) {
+        if out.len() >= MAX_PINNED {
+            break;
+        }
+        if !path.is_empty() && !out.iter().any(|p| p == path) {
+            out.push(path.to_string());
+        }
+    }
+    out
 }
 
 impl crate::PdfCraftApp {
+    /// Whether document `id`'s file is pinned.
+    pub fn tab_pinned(&self, id: DocId) -> bool {
+        self.session.get(id).and_then(|d| d.path.as_deref()).is_some_and(|p| {
+            let p = pin_key(p);
+            self.pinned_tabs.contains(&p)
+        })
+    }
+
     pub(crate) fn tab_action(&mut self, action: Action) {
         match action {
             Action::Close(id) => {
@@ -31,6 +72,26 @@ impl crate::PdfCraftApp {
                             self.closed_tabs.pop();
                         }
                     }
+                }
+            }
+            Action::Pin(id) => {
+                let Some(path) = self.session.get(id).and_then(|d| d.path.as_deref()).map(pin_key) else { return };
+                if !self.pinned_tabs.contains(&path) {
+                    if self.pinned_tabs.len() >= MAX_PINNED {
+                        self.notify_tr("No more tabs can be pinned: unpin one first");
+                        return;
+                    }
+                    self.pinned_tabs.push(path);
+                }
+                // To the end of the pinned tabs, which lead the strip.
+                if let Some(from) = self.views.iter().position(|v| v.id == id) {
+                    let to = self.views.iter().take(from).filter(|v| self.tab_pinned(v.id)).count();
+                    self.move_tab(from, to);
+                }
+            }
+            Action::Unpin(id) => {
+                if let Some(path) = self.session.get(id).and_then(|d| d.path.as_deref()).map(pin_key) {
+                    self.pinned_tabs.retain(|p| *p != path);
                 }
             }
             Action::Reveal(id) => {
@@ -157,6 +218,20 @@ fn reveal_command(platform: &str, path: &std::path::Path) -> Result<(&'static st
 mod tests {
     use super::*;
     const PDF: &[u8] = include_bytes!("../tests/data/form.pdf");
+
+    /// The settings file is untrusted: pinned tabs are read as text paths only, each once, and
+    /// no more than the cap however many it lists.
+    #[test]
+    fn pinned_tabs_are_read_leniently_and_capped() {
+        let v = serde_json::json!(["/a.pdf", 7, null, "", "/a.pdf", { "path": "/x.pdf" }, "/b.pdf"]);
+        assert_eq!(pinned_from_json(&v), ["/a.pdf", "/b.pdf"]);
+        assert!(pinned_from_json(&serde_json::json!("/a.pdf")).is_empty(), "not a list");
+        assert!(pinned_from_json(&serde_json::Value::Null).is_empty());
+        let many: Vec<String> = (0..1000).map(|i| format!("/f{i}.pdf")).collect();
+        let read = pinned_from_json(&serde_json::json!(many));
+        assert_eq!(read.len(), MAX_PINNED);
+        assert_eq!(read.first().map(String::as_str), Some("/f0.pdf"));
+    }
 
     #[test]
     fn confirmed_close_uses_id_and_cancel_keeps_history_empty() {

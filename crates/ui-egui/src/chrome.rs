@@ -128,12 +128,14 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                 let Some(name) = crate::canvas::tab_label(app, i) else { continue };
                                 let dirty = doc.dirty;
                                 // A tab showing the document's title names its file on hover.
+                                // A pinned tab (#2926) shows a pin where the others show a page.
+                                let pinned = app.tab_pinned(app.views[i].id);
                                 let file = (name != doc.name).then_some(doc.name.as_str());
                                 let response = tab(
                                     ui,
                                     ui.id().with(("document-tab", app.views[i].id)),
                                     &t,
-                                    "file-text",
+                                    if pinned { "pin" } else { "file-text" },
                                     &name,
                                     file,
                                     dirty,
@@ -166,6 +168,18 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                     if ui.add_enabled(reveal, egui::Button::new(label)).clicked() {
                                         action = Some(crate::tab_context::Action::Reveal(id));
                                         ui.close();
+                                    }
+                                    // Only a document with a file can be opened again at the next start.
+                                    if doc.path.is_some() {
+                                        let (label, pin) = if pinned {
+                                            (tl!("Unpin Tab"), crate::tab_context::Action::Unpin(id))
+                                        } else {
+                                            (tl!("Pin Tab"), crate::tab_context::Action::Pin(id))
+                                        };
+                                        if ui.button(label).clicked() {
+                                            action = Some(pin);
+                                            ui.close();
+                                        }
                                     }
                                 });
                                 if response.clicked() {

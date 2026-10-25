@@ -99,8 +99,28 @@ impl PdfCraftApp {
     ///
     /// Only one password prompt can wait at a time: the first encrypted file asks for its
     /// password and later ones stay closed (they are in the recent-files list).
+    ///
+    /// Pinned tabs (#2926) open first, whatever the preference says: they are the files meant
+    /// to be open at every start. One that is missing now (a drive not connected) stays pinned.
     pub fn reopen_last_files(&mut self, skip: &[String]) {
         let last = std::mem::take(&mut self.last_session);
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let skip: Vec<String> = skip.iter().map(|p| absolute(p)).collect();
+            let mut prompt = self.password_prompt.take();
+            for path in self.pinned_tabs.clone() {
+                let open =
+                    self.views.iter().any(|v| self.session.get(v.id).and_then(|d| d.path.as_deref()).map(absolute).as_deref() == Some(path.as_str()));
+                if skip.contains(&path) || open || !std::path::Path::new(&path).is_file() {
+                    continue;
+                }
+                self.open_path(&path);
+                if let Some(p) = self.password_prompt.take() {
+                    prompt.get_or_insert(p);
+                }
+            }
+            self.password_prompt = prompt;
+        }
         #[cfg(not(target_arch = "wasm32"))]
         if self.reopen_last_session {
             let skip: Vec<String> =

@@ -957,6 +957,66 @@ fn the_last_session_is_off_by_default_and_skips_missing_and_duplicate_files() {
     assert!(later.views.is_empty(), "neither opens from the session");
 }
 
+/// #2926: a tab's menu pins it: it moves to the end of the pinned tabs at the strip's start,
+/// and its file opens at the next start whatever Reopen last session says, first in the strip.
+/// Closing it doesn't unpin it (quitting closes unsaved tabs one by one); Unpin Tab does. A
+/// pinned file that is missing at a start is left closed but stays pinned.
+#[test]
+fn pinned_tabs_lead_the_strip_and_open_at_every_start() {
+    use egui_kittest::kittest::Queryable as _;
+    let dir = TempPdfs::new("pinned");
+    let files = [dir.file("a.pdf", 1), dir.file("b.pdf", 1), dir.file("c.pdf", 1)];
+    let opened = files.clone();
+    let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
+        let mut app = PdfCraftApp::new();
+        app.set_option("language", "en").unwrap();
+        opened.iter().for_each(|f| {
+            app.open_path(f);
+        });
+        app
+    });
+    h.run_steps(4);
+    let menu = |h: &mut Harness<'static, PdfCraftApp>, tab: &str, item: &str| {
+        h.get_by_role_and_label(egui::accesskit::Role::Tab, tab).click_secondary();
+        h.run_steps(2);
+        h.get_by_label(item).click();
+        h.run_steps(3);
+    };
+    let names = |app: &PdfCraftApp| -> Vec<String> {
+        open_paths(app).iter().map(|p| std::path::Path::new(p).file_name().unwrap().to_string_lossy().into_owned()).collect()
+    };
+    menu(&mut h, "c.pdf", "Pin Tab");
+    assert_eq!(names(h.state()), ["c.pdf", "a.pdf", "b.pdf"], "c.pdf leads the strip");
+    menu(&mut h, "b.pdf", "Pin Tab");
+    assert_eq!(names(h.state()), ["c.pdf", "b.pdf", "a.pdf"], "b.pdf follows the pinned c.pdf");
+    assert!(h.state().tab_pinned(h.state().views[0].id) && !h.state().tab_pinned(h.state().views[2].id));
+    // Closing a pinned tab leaves it pinned.
+    menu(&mut h, "b.pdf", "Close Tab");
+    assert_eq!(names(h.state()), ["c.pdf", "a.pdf"]);
+    assert_eq!(h.state().pinned_tabs.len(), 2);
+    // The next start, with Reopen last session off: the pinned files, in pinned order.
+    let settings = h.state().persist();
+    let mut later = PdfCraftApp::new();
+    later.restore(&settings);
+    assert!(!later.reopen_last_session);
+    later.reopen_last_files(&[]);
+    assert_eq!(names(&later), ["c.pdf", "b.pdf"]);
+    // A pinned file opened from the command line isn't opened twice; a missing one stays pinned.
+    std::fs::remove_file(&files[1]).unwrap();
+    let mut again = PdfCraftApp::new();
+    again.restore(&settings);
+    again.reopen_last_files(&[files[2].clone()]);
+    assert!(again.views.is_empty(), "c.pdf comes from the command line, b.pdf is gone");
+    assert_eq!(again.pinned_tabs.len(), 2, "b.pdf stays pinned while it is missing");
+    // Unpin Tab: no longer opened at a start.
+    menu(&mut h, "c.pdf", "Unpin Tab");
+    assert!(h.state().pinned_tabs.iter().all(|p| !p.ends_with("c.pdf")));
+    let mut last = PdfCraftApp::new();
+    last.restore(&h.state().persist());
+    last.reopen_last_files(&[]);
+    assert!(names(&last).is_empty(), "b.pdf is gone and c.pdf is unpinned: {:?}", names(&last));
+}
+
 #[test]
 fn opening_the_same_path_again_focuses_its_tab() {
     let pdfs = TempPdfs::new("dedup-open");
