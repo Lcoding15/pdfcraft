@@ -99,7 +99,28 @@ pub fn from_press(key: Key, m: Modifiers, mac: bool) -> Result<Shortcut, Refusal
     if let Some((_, what)) = reserved().into_iter().find(|(r, _)| same(*r, s)) {
         return Err(Refusal::Reserved(what));
     }
+    if let Some(what) = view_key(key, s) {
+        return Err(Refusal::Reserved(what));
+    }
     Ok(s)
+}
+
+/// What the document view does with `key` pressed without Ctrl/⌘ (or ⌃), where it reads the key
+/// itself: the tool keys, moving through the pages, and deleting the selection. ⌘Page Up /
+/// ⌘Page Down turn pages too.
+fn view_key(key: Key, s: Shortcut) -> Option<&'static str> {
+    let plain = !s.command && !s.mac_ctrl;
+    match key {
+        Key::PageUp | Key::PageDown => Some("Previous / next page"),
+        _ if !plain => None,
+        Key::V if !s.shift => Some("Select tool"),
+        Key::H if !s.shift => Some("Hand tool"),
+        Key::Home | Key::End => Some("First / last page"),
+        Key::ArrowLeft | Key::ArrowRight => Some("Previous / next page"),
+        Key::ArrowUp | Key::ArrowDown => Some("Scroll the page"),
+        Key::Delete => Some("Delete the selection"),
+        _ => None,
+    }
 }
 
 /// A shortcut as the settings store it: `cmd+shift+ctrl+K` (only the modifiers it has).
@@ -403,6 +424,22 @@ mod tests {
         assert!(from_press(Key::Tab, ctrl, false).is_ok(), "with Ctrl it is free");
         assert!(matches!(from_press(Key::C, ctrl, false), Err(Refusal::Reserved("Copy selected text"))));
         assert!(from_press(Key::F5, Modifiers::NONE, false).is_ok());
+        // Keys the document view reads on its own, before any command could have them.
+        for (key, m) in [
+            (Key::V, Modifiers::NONE),
+            (Key::H, Modifiers::NONE),
+            (Key::Home, Modifiers::NONE),
+            (Key::End, Modifiers::NONE),
+            (Key::ArrowLeft, Modifiers::NONE),
+            (Key::ArrowDown, Modifiers::SHIFT),
+            (Key::PageDown, Modifiers::NONE),
+            (Key::PageUp, ctrl),
+            (Key::Delete, Modifiers::NONE),
+        ] {
+            assert!(matches!(from_press(key, m, false), Err(Refusal::Reserved(_))), "{key:?} {m:?}");
+        }
+        assert!(from_press(Key::V, Modifiers::SHIFT, false).is_ok() && from_press(Key::Home, ctrl, false).is_ok());
+        assert!(!allowed(Shortcut { command: false, shift: false, mac_ctrl: false, key: "Home" }), "nor from the settings");
         // On macOS Control is ⌃, a modifier of its own.
         let mac = from_press(Key::H, Modifiers::MAC_CMD | Modifiers::COMMAND | Modifiers::CTRL, true).unwrap();
         assert!(mac.command && mac.mac_ctrl);
