@@ -672,7 +672,6 @@ pub fn remove_hidden(doc: &mut Document, which: &[Hidden]) -> Result<Vec<(Hidden
     Ok(done)
 }
 
-/// Sanitize Document: remove every category of hidden information.
 /// What Sanitize does with a signed document's signatures, which its rewrite would invalidate
 /// (#4622). Refusing, the default, is the caller's.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -724,10 +723,16 @@ pub fn sanitize_flattening_signatures(doc: &mut Document) -> Result<(Vec<(Hidden
 /// fields and widgets went.
 pub fn remove_signatures(doc: &mut Document) -> Result<usize, RedactError> {
     let mut removed = 0usize;
+    let mut gone = std::collections::HashSet::new();
     for f in pdfcraft_forms::fields(doc).into_iter().filter(|f| f.kind == pdfcraft_forms::FieldKind::Signature) {
+        gone.insert(f.obj);
+        gone.extend(f.widgets.iter().map(|w| w.obj));
         pdfcraft_forms::delete_field_object(doc, f.obj)?;
         removed = removed.saturating_add(1);
     }
+    // A tagged PDF's structure tree still points at the removed widgets (`/OBJR`), which would
+    // keep them, and their signature dictionaries, in the full rewrite.
+    crate::tags::drop_object_refs(doc, &gone)?;
     Ok(removed.saturating_add(drop_signature_data(doc, &std::collections::HashSet::new())?))
 }
 
@@ -737,15 +742,19 @@ pub fn remove_signatures(doc: &mut Document) -> Result<usize, RedactError> {
 /// how many widgets went.
 fn drop_signature_data(doc: &mut Document, keep: &std::collections::HashSet<ObjRef>) -> Result<usize, RedactError> {
     let mut removed = 0usize;
+    let mut gone = std::collections::HashSet::new();
     for p in pdfcraft_model::pages(doc) {
         let list = annots_of(doc, &p.dict);
-        let kept: Vec<Object> =
-            list.iter().filter(|a| a.as_ref().is_some_and(|r| keep.contains(&r)) || !is_signature_widget(doc, a)).cloned().collect();
+        let (kept, dropped): (Vec<Object>, Vec<Object>) =
+            list.iter().cloned().partition(|a| a.as_ref().is_some_and(|r| keep.contains(&r)) || !is_signature_widget(doc, a));
+        gone.extend(dropped.iter().filter_map(Object::as_ref));
         if kept.len() != list.len() {
             removed = removed.saturating_add(list.len() - kept.len());
             doc.update_dict(p.obj, |d| d.set(b"Annots".to_vec(), Object::Array(kept)))?;
         }
     }
+    // Their `/OBJR` entries in a tagged PDF's structure tree go too (see `remove_signatures`).
+    crate::tags::drop_object_refs(doc, &gone)?;
     if let Some((root, cat)) = catalog(doc) {
         if cat.contains(b"Perms") || cat.contains(b"DSS") {
             doc.update_dict(root, |d| {
@@ -792,6 +801,7 @@ fn is_signature_widget(doc: &Document, a: &Object) -> bool {
     false
 }
 
+/// Sanitize Document: remove every category of hidden information.
 pub fn sanitize(doc: &mut Document) -> Result<Vec<(Hidden, usize)>, RedactError> {
     match remove_hidden(doc, &HIDDEN) {
         // Nothing hidden is fine for Sanitize: the full rewrite still drops old revisions.

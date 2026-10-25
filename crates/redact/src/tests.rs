@@ -3071,6 +3071,44 @@ fn sanitizing_with_signatures_removed_leaves_no_signature_and_no_signer_on_the_p
     assert_eq!(remove_signatures(&mut doc).unwrap(), 0, "nothing left the second time");
 }
 
+/// #4650 review: in a tagged PDF the structure tree points at the signature widgets (`/OBJR`).
+/// Removing the signatures drops those references too, or the full rewrite keeps the widget and,
+/// through its `/V`, the signature dictionary with the signer's name.
+#[test]
+fn removed_signatures_leave_the_structure_tree_and_the_saved_file() {
+    use crate::sanitize::{Signatures, sanitize_signed};
+
+    let tagged = || {
+        let mut doc = signed_form();
+        let objr = |n: u32| {
+            let mut d = Dict::new();
+            d.set(b"Type".to_vec(), Object::name("OBJR"));
+            d.set(b"Obj".to_vec(), Object::Ref(ObjRef::new(n, 0)));
+            Object::Dict(d)
+        };
+        let mut elem = Dict::new();
+        elem.set(b"Type".to_vec(), Object::name("StructElem"));
+        elem.set(b"S".to_vec(), Object::name("Form"));
+        elem.set(b"K".to_vec(), Object::Array(vec![objr(5), objr(8)]));
+        let elem = doc.add(Object::Dict(elem));
+        let mut root = Dict::new();
+        root.set(b"Type".to_vec(), Object::name("StructTreeRoot"));
+        root.set(b"K".to_vec(), Object::Ref(elem));
+        let root = doc.add(Object::Dict(root));
+        let cat = doc.root().unwrap();
+        doc.update_dict(cat, |d| d.set(b"StructTreeRoot".to_vec(), Object::Ref(root))).unwrap();
+        doc
+    };
+    for how in [Signatures::Remove, Signatures::Flatten] {
+        let mut doc = tagged();
+        sanitize_signed(&mut doc, how).unwrap();
+        let bytes = write_full(&doc, &SaveOptions { object_streams: false, ..SaveOptions::default() }).unwrap();
+        for gone in [b"Ada Signer".as_slice(), b"/ByteRange", b"/OBJR"] {
+            assert!(!bytes.windows(gone.len()).any(|w| w == gone), "{how:?}: {} is still in the file", String::from_utf8_lossy(gone));
+        }
+    }
+}
+
 #[test]
 fn a_signature_widget_whose_parents_loop_is_left_alone() {
     // 5 → 6 → 5: no /FT anywhere, so not a signature widget; the walk ends.
