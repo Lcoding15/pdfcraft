@@ -8555,7 +8555,7 @@ fn pdf_with_annots(annots: &[&[u8]]) -> Vec<u8> {
 /// sanitizes, takes every signature structure out, and saves as a full rewrite with no earlier
 /// revision left in it.
 #[test]
-fn sanitizing_a_signed_document_can_remove_its_signatures() {
+fn sanitizing_a_signed_document_can_remove_or_flatten_its_signatures() {
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
     let digital_id = sign::pkcs12::open(&p12, "test").unwrap();
     let mut s = Session::new().with_clock(|| 1_800_000_000);
@@ -8564,7 +8564,7 @@ fn sanitizing_a_signed_document_can_remove_its_signatures() {
     let signed = s.sign(id, &digital_id, opts).unwrap();
     s.mark_signed(id, signed.clone(), Some("/tmp/signed.pdf".into())).unwrap();
     assert!(matches!(s.apply(id, Edit::Sanitize), Err(EditError::SignedRewrite(_))), "the default still refuses");
-    s.apply(id, Edit::SanitizeRemovingSignatures).unwrap();
+    s.apply(id, Edit::SanitizeSigned(pdfcraft_redact::sanitize::Signatures::Remove)).unwrap();
     let doc = s.get(id).unwrap();
     assert!(!doc.is_signed() && doc.signatures.is_empty(), "{:?}", doc.signatures);
     assert_eq!(doc.can_undo(), Some("Sanitize document and remove signatures"));
@@ -8579,7 +8579,22 @@ fn sanitizing_a_signed_document_can_remove_its_signatures() {
     let id2 = s2.open("out.pdf", None, saved, None).unwrap();
     let d = s2.get(id2).unwrap();
     assert!(d.signatures.is_empty() && d.form.is_empty() && d.info.pages.len() == 2);
+    assert!(!page_texts(&s2, id2).iter().any(|t| t.contains("Digitally signed by")), "removed, look and all");
     // Undo brings the signed document back as it was.
     s.undo(id).unwrap();
     assert!(s.get(id).unwrap().is_signed());
+    // Flattened instead: the same goes, but the signature's look stays on the page.
+    s.apply(id, Edit::SanitizeSigned(crate::SanitizeSignatures::Flatten)).unwrap();
+    assert!(!s.get(id).unwrap().is_signed());
+    assert_eq!(s.get(id).unwrap().can_undo(), Some("Sanitize document and flatten signatures"));
+    let flat = s.save_bytes(id).unwrap();
+    let text = String::from_utf8_lossy(&flat);
+    for gone in ["/ByteRange", "/Perms", "/DSS", "/SigFlags", "Approved"] {
+        assert!(!text.contains(gone), "{gone} is still in the flattened file");
+    }
+    let mut s3 = Session::new();
+    let id3 = s3.open("flat.pdf", None, flat, None).unwrap();
+    let d = s3.get(id3).unwrap();
+    assert!(d.signatures.is_empty() && d.form.is_empty());
+    assert!(page_texts(&s3, id3).iter().any(|t| t.contains("Digitally signed by")), "the signature's look is page content now");
 }

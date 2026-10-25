@@ -723,6 +723,13 @@ fn sanitizing_a_signed_document_asks_to_remove_its_signatures() {
     assert!(signed(&h));
     h.state_mut().execute("redact.sanitize");
     h.run_steps(2);
-    assert!(!h.state().sanitize_remove_signatures);
+    assert!(h.state().sanitize_signatures.is_none());
     assert!(h.query_by(|n| n.label().as_deref() == Some("Sanitize") && n.is_disabled()).is_some());
+    // Keeping only their look is the other choice.
+    h.get_by_label("Keep only how the signatures look, as page content (a name or date they show stays visible)").click();
+    h.run_steps(2);
+    h.get_by_label("Sanitize").click();
+    h.run_steps(3);
+    assert!(!signed(&h));
+    assert_eq!(h.state().session.get(h.state().views[0].id).unwrap().can_undo(), Some("Sanitize document and flatten signatures"));
 }

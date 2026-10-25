@@ -673,6 +673,24 @@ pub fn remove_hidden(doc: &mut Document, which: &[Hidden]) -> Result<Vec<(Hidden
 }
 
 /// Sanitize Document: remove every category of hidden information.
+/// What Sanitize does with a signed document's signatures, which its rewrite would invalidate
+/// (#4622). Refusing, the default, is the caller's.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Signatures {
+    /// [`sanitize_removing_signatures`]: gone, look and all.
+    Remove,
+    /// [`sanitize_flattening_signatures`]: their look stays as page content.
+    Flatten,
+}
+
+/// [`sanitize_removing_signatures`] or [`sanitize_flattening_signatures`], as `how` says.
+pub fn sanitize_signed(doc: &mut Document, how: Signatures) -> Result<(Vec<(Hidden, usize)>, usize), RedactError> {
+    match how {
+        Signatures::Remove => sanitize_removing_signatures(doc),
+        Signatures::Flatten => sanitize_flattening_signatures(doc),
+    }
+}
+
 /// Sanitize Document for a signed file, with its signatures removed (#4622): [`remove_signatures`],
 /// then [`sanitize`]. The signatures can't survive a sanitized rewrite, and their certificates,
 /// names and timestamps are hidden information too. Returns what [`sanitize`] removed and how
@@ -680,6 +698,24 @@ pub fn remove_hidden(doc: &mut Document, which: &[Hidden]) -> Result<Vec<(Hidden
 pub fn sanitize_removing_signatures(doc: &mut Document) -> Result<(Vec<(Hidden, usize)>, usize), RedactError> {
     let signatures = remove_signatures(doc)?;
     Ok((sanitize(doc)?, signatures))
+}
+
+/// Sanitize Document for a signed file, keeping how its signatures look (#4622): [`sanitize`]
+/// flattens each signature field's appearance onto the page like any other field's, and the
+/// signature dictionary (the certificates, the signer's name, the timestamp) goes with the form,
+/// reachable from nothing once `/Perms` is gone too.
+/// Signature widgets the form doesn't list, `/Perms`, `/DSS` and `/SigFlags` go as with
+/// [`remove_signatures`]. Whatever the appearance itself shows (a name, a date) stays on the page.
+/// Returns what [`sanitize`] removed and how many signature fields were flattened.
+pub fn sanitize_flattening_signatures(doc: &mut Document) -> Result<(Vec<(Hidden, usize)>, usize), RedactError> {
+    let mut flattened = 0usize;
+    let mut keep = std::collections::HashSet::new();
+    for f in pdfcraft_forms::fields(doc).into_iter().filter(|f| f.kind == pdfcraft_forms::FieldKind::Signature) {
+        keep.extend(f.widgets.iter().map(|w| w.obj));
+        flattened = flattened.saturating_add(1);
+    }
+    drop_signature_data(doc, &keep)?;
+    Ok((sanitize(doc)?, flattened))
 }
 
 /// Remove every signature field (signed or empty, document timestamps included) with its widgets
@@ -692,9 +728,19 @@ pub fn remove_signatures(doc: &mut Document) -> Result<usize, RedactError> {
         pdfcraft_forms::delete_field_object(doc, f.obj)?;
         removed = removed.saturating_add(1);
     }
+    Ok(removed.saturating_add(drop_signature_data(doc, &std::collections::HashSet::new())?))
+}
+
+/// What goes with the signatures however they are handled: signature widgets a page lists that
+/// the form adopts no field for, the catalog's `/Perms` and `/DSS`, and the form's `/SigFlags`.
+/// Widgets in `keep` stay (the fields being flattened). The next save is a full rewrite. Returns
+/// how many widgets went.
+fn drop_signature_data(doc: &mut Document, keep: &std::collections::HashSet<ObjRef>) -> Result<usize, RedactError> {
+    let mut removed = 0usize;
     for p in pdfcraft_model::pages(doc) {
         let list = annots_of(doc, &p.dict);
-        let kept: Vec<Object> = list.iter().filter(|a| !is_signature_widget(doc, a)).cloned().collect();
+        let kept: Vec<Object> =
+            list.iter().filter(|a| a.as_ref().is_some_and(|r| keep.contains(&r)) || !is_signature_widget(doc, a)).cloned().collect();
         if kept.len() != list.len() {
             removed = removed.saturating_add(list.len() - kept.len());
             doc.update_dict(p.obj, |d| d.set(b"Annots".to_vec(), Object::Array(kept)))?;

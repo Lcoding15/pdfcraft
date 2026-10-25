@@ -3036,10 +3036,10 @@ fn signed_form() -> Document {
 
 #[test]
 fn sanitizing_with_signatures_removed_leaves_no_signature_and_no_signer_on_the_page() {
-    use crate::sanitize::{remove_signatures, sanitize_removing_signatures};
+    use crate::sanitize::{Signatures, remove_signatures, sanitize_signed};
 
     let mut doc = signed_form();
-    let (_, removed) = sanitize_removing_signatures(&mut doc).unwrap();
+    let (_, removed) = sanitize_signed(&mut doc, Signatures::Remove).unwrap();
     assert_eq!(removed, 2, "the listed field and the widget the form doesn't list");
     let saved = Document::open(Arc::new(write_full(&doc, &SaveOptions::default()).unwrap())).unwrap();
     let text: Vec<String> = pdfcraft_edit::text_lines(&saved, 0).unwrap().into_iter().map(|l| l.text).collect();
@@ -3083,4 +3083,28 @@ fn a_signature_widget_whose_parents_loop_is_left_alone() {
         b"<< /Parent 5 0 R >>".to_vec(),
     ]);
     assert_eq!(crate::sanitize::remove_signatures(&mut doc).unwrap(), 0);
+}
+
+#[test]
+fn sanitizing_with_signatures_flattened_keeps_their_look_and_drops_the_signature() {
+    use crate::sanitize::{Signatures, sanitize_signed};
+
+    let mut doc = signed_form();
+    let (_, flattened) = sanitize_signed(&mut doc, Signatures::Flatten).unwrap();
+    assert_eq!(flattened, 1, "the listed signature field");
+    let saved = Document::open(Arc::new(write_full(&doc, &SaveOptions::default()).unwrap())).unwrap();
+    let page = pdfcraft_model::pages(&saved)[0].dict.clone();
+    assert!(annots_of(&saved, &page).is_empty(), "every widget is page content now, or gone");
+    let xobjects = page
+        .get(b"Resources")
+        .and_then(|r| saved.resolve(r).as_dict().cloned())
+        .and_then(|r| r.get(b"XObject").and_then(|x| saved.resolve(x).as_dict().cloned()));
+    assert_eq!(xobjects.map(|x| x.len()), Some(2), "the signature's look and the text field's; the unlisted widget goes");
+    let root = saved.get(saved.root().unwrap()).as_dict().unwrap().clone();
+    assert!(!root.contains(b"Perms") && !root.contains(b"DSS") && !root.contains(b"AcroForm"), "{root:?}");
+    let bytes = write_full(&saved, &SaveOptions::default()).unwrap();
+    assert!(bytes.windows(6).any(|w| w == b"SIGNER"), "the appearance stays as page content");
+    for gone in [b"Ada Signer".as_slice(), b"/ByteRange", b"/SigFlags", b"Unlisted", b"/Sig "] {
+        assert!(!bytes.windows(gone.len()).any(|w| w == gone), "{} is still in the file", String::from_utf8_lossy(gone));
+    }
 }

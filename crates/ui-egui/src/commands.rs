@@ -505,7 +505,7 @@ impl PdfCraftApp {
             "print.dialog" => self.open_print(),
             "redact.sanitize" => {
                 // Removing signatures is asked for each time, never remembered.
-                self.sanitize_remove_signatures = false;
+                self.sanitize_signatures = None;
                 self.dialog = Some(Dialog::Sanitize);
             }
             "redact.clear" => {

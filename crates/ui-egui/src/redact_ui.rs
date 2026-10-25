@@ -669,8 +669,14 @@ pub(crate) fn hidden_body(ui: &mut egui::Ui, d: &mut HiddenDraft, t: &Tokens) ->
 
 /// Sanitize Document confirmation. Returns (sanitize, cancel).
 /// `signed`: the document holds a digital signature, which a sanitized rewrite would invalidate.
-/// Sanitizing then waits for `remove_signatures` to be ticked (#4622).
-pub(crate) fn sanitize_body(ui: &mut egui::Ui, t: &Tokens, signed: bool, remove_signatures: &mut bool) -> (bool, bool) {
+/// Sanitizing then waits for a choice of what happens to the signatures (#4622).
+pub(crate) fn sanitize_body(
+    ui: &mut egui::Ui,
+    t: &Tokens,
+    signed: bool,
+    signatures: &mut Option<pdfcraft_engine::SanitizeSignatures>,
+) -> (bool, bool) {
+    use pdfcraft_engine::SanitizeSignatures as S;
     ui.set_width(440.0);
     ui.label(egui::RichText::new(tl!("Sanitize document")).font(crate::theme::semibold(18.0)));
     ui.add_space(8.0);
@@ -686,14 +692,23 @@ pub(crate) fn sanitize_body(ui: &mut egui::Ui, t: &Tokens, signed: bool, remove_
         ui.label(
             egui::RichText::new(tl!("This document is digitally signed. Sanitizing rewrites the whole file, which invalidates the signatures, so it can only go ahead without them.")).color(t.text),
         );
-        ui.add(widgets::checkbox(
-            remove_signatures,
+        ui.add_space(4.0);
+        widgets::radio_value(
+            ui,
+            signatures,
+            Some(S::Remove),
             tl!("Remove the digital signatures: their fields, how they look on the page and their validation data"),
-        ));
+        );
+        widgets::radio_value(
+            ui,
+            signatures,
+            Some(S::Flatten),
+            tl!("Keep only how the signatures look, as page content (a name or date they show stays visible)"),
+        );
     }
     ui.add_space(12.0);
     let (mut ok, mut cancel) = (false, false);
-    let ready = !signed || *remove_signatures;
+    let ready = !signed || signatures.is_some();
     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
         if ui.add_enabled_ui(ready, |ui| widgets::pill_button(ui, tl!("Sanitize"), true)).inner.clicked() {
             ok = true;

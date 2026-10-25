@@ -161,7 +161,7 @@ pub use pdfcraft_redact::codes::{CODE_SETS as REDACTION_CODE_SETS, CodeSet as Re
 pub use pdfcraft_redact::patterns::{
     MAX_WORDS as REDACT_MAX_WORDS, PATTERNS as REDACT_PATTERNS, Pattern as RedactPattern, find as find_pattern, word_list as redact_word_list,
 };
-pub use pdfcraft_redact::sanitize::{HIDDEN, Hidden};
+pub use pdfcraft_redact::sanitize::{HIDDEN, Hidden, Signatures as SanitizeSignatures};
 pub use pdfcraft_sign as sign;
 pub use pdfcraft_sign::{SignOptions, SignatureInfo, Status as SignatureStatus, TrustStore};
 pub use pdfcraft_xfdf::Format as DataFormat;
@@ -1894,10 +1894,10 @@ pub enum Edit {
     },
     /// Sanitize Document: every category, then a full rewrite on save.
     Sanitize,
-    /// Sanitize Document on a signed file, removing its digital signatures (fields, widgets and
-    /// appearances, `/Perms`, `/DSS`), which a sanitized rewrite would invalidate anyway (#4622).
-    /// Allowed on signed documents, unlike every other full rewrite.
-    SanitizeRemovingSignatures,
+    /// Sanitize Document on a signed file, removing its digital signatures or keeping only how they
+    /// look (`/Perms` and `/DSS` go either way), which a sanitized rewrite would invalidate anyway
+    /// (#4622). Allowed on signed documents, unlike every other full rewrite.
+    SanitizeSigned(pdfcraft_redact::sanitize::Signatures),
     /// An XFA form made an ordinary (static) PDF form: the XFA packets, `/NeedsRendering` and
     /// PdfCraft's private keys go, the pages as laid out and the fields with their values
     /// stay, so every viewer shows the same form and none lays it out again. Its scripts no
@@ -2120,6 +2120,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Create links",
     "Sanitize document",
     "Sanitize document and remove signatures",
+    "Sanitize document and flatten signatures",
     "Flatten comments",
     "Flatten form fields",
     "Flatten",
@@ -2264,7 +2265,8 @@ impl Edit {
             Edit::RemoveLinks { .. } => Label::of("Remove all links"),
             Edit::AddLinks { links, .. } => plural("Create link", "Create links", links.len()),
             Edit::Sanitize => Label::of("Sanitize document"),
-            Edit::SanitizeRemovingSignatures => Label::of("Sanitize document and remove signatures"),
+            Edit::SanitizeSigned(pdfcraft_redact::sanitize::Signatures::Remove) => Label::of("Sanitize document and remove signatures"),
+            Edit::SanitizeSigned(pdfcraft_redact::sanitize::Signatures::Flatten) => Label::of("Sanitize document and flatten signatures"),
             Edit::XfaToStatic => Label::of("Convert to a static form"),
             Edit::Flatten { comments: true, fields: false } => Label::of("Flatten comments"),
             Edit::Flatten { comments: false, fields: true } => Label::of("Flatten form fields"),
@@ -2418,7 +2420,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::RemoveLinks { .. }
         | Edit::AddLinks { .. }
         | Edit::Sanitize
-        | Edit::SanitizeRemovingSignatures
+        | Edit::SanitizeSigned(_)
         | Edit::XfaToStatic
         | Edit::SetFieldProps { .. }
         | Edit::DeleteField { .. }
@@ -2953,8 +2955,8 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::Sanitize => {
             pdfcraft_redact::sanitize::sanitize(doc)?;
         }
-        Edit::SanitizeRemovingSignatures => {
-            pdfcraft_redact::sanitize::sanitize_removing_signatures(doc)?;
+        Edit::SanitizeSigned(how) => {
+            pdfcraft_redact::sanitize::sanitize_signed(doc, *how)?;
         }
         Edit::Flatten { comments, fields } => {
             // An XFA form's fields baked into the pages: the XFA goes too, or Adobe's viewers
@@ -4107,7 +4109,7 @@ impl Session {
         // So does any edit to a file rebuilt from object headers: it has no chain to append to.
         let rewrites = |c: &pdfcraft_cos::Document| c.full_save_required() || c.encryption_changed();
         // Sanitizing with the signatures removed is asked for knowing that (#4622).
-        let unsigns = matches!(edit, Edit::SanitizeRemovingSignatures);
+        let unsigns = matches!(edit, Edit::SanitizeSigned(_));
         if signed && !unsigns && ((rewrites(&next) && !rewrites(&editor.cos)) || (next.is_modified() && next.revisions().is_empty())) {
             return Err(EditError::SignedRewrite(edit.label().to_string()));
         }

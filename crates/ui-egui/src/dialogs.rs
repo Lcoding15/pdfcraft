@@ -1009,7 +1009,7 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
             }
             Dialog::Sanitize => {
                 let signed = app.active_ids().and_then(|(_, id)| app.session.get(id)).is_some_and(|d| d.is_signed());
-                let (ok, cancel) = crate::redact_ui::sanitize_body(ui, &t, signed, &mut app.sanitize_remove_signatures);
+                let (ok, cancel) = crate::redact_ui::sanitize_body(ui, &t, signed, &mut app.sanitize_signatures);
                 if ok {
                     redact_now = Some(dialog);
                 }
@@ -1463,13 +1463,10 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
             }
         }
         Some(Dialog::Sanitize)
-            if app.apply_edit(
-                if app.sanitize_remove_signatures && app.active_ids().and_then(|(_, id)| app.session.get(id)).is_some_and(|d| d.is_signed()) {
-                    Edit::SanitizeRemovingSignatures
-                } else {
-                    Edit::Sanitize
-                },
-            ) =>
+            if app.apply_edit(match app.sanitize_signatures {
+                Some(how) if app.active_ids().and_then(|(_, id)| app.session.get(id)).is_some_and(|d| d.is_signed()) => Edit::SanitizeSigned(how),
+                _ => Edit::Sanitize,
+            }) =>
         {
             app.notify_tr("Document sanitized. Save to finish: saving rewrites the whole file.");
         }

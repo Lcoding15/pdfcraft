@@ -9077,7 +9077,7 @@ fn sanitizing_a_signed_document_through_tools_removes_its_signatures_when_asked(
     let doc = ok(&mut a, "doc_open", json!({ "path": "signed.pdf" }))["doc"].as_u64().unwrap();
     assert!(matches!(a.call("doc_remove_hidden", &json!({ "doc": doc })), Err(ToolError::Failed(_))), "abort is the default");
     assert!(matches!(a.call("doc_remove_hidden", &json!({ "doc": doc, "signatures": "abort" })), Err(ToolError::Failed(_))));
-    for bad in [json!({ "doc": doc, "signatures": "flatten" }), json!({ "doc": doc, "signatures": "remove", "categories": ["comments"] })] {
+    for bad in [json!({ "doc": doc, "signatures": "keep" }), json!({ "doc": doc, "signatures": "flatten", "categories": ["comments"] })] {
         assert!(matches!(a.call("doc_remove_hidden", &bad), Err(ToolError::InvalidArgs(_))), "{bad}");
     }
     let r = ok(&mut a, "doc_remove_hidden", json!({ "doc": doc, "signatures": "remove" }));
@@ -9087,4 +9087,11 @@ fn sanitizing_a_signed_document_through_tools_removes_its_signatures_when_asked(
     assert!(!bytes.windows(10).any(|w| w == b"/ByteRange"), "no signature is left in the file");
     let clean = ok(&mut a, "doc_open", json!({ "path": "clean.pdf" }))["doc"].as_u64().unwrap();
     assert_eq!(ok(&mut a, "form_fields", json!({ "doc": clean }))["count"], 0);
+    // Flattened: the same, as one step of its own.
+    ok(&mut a, "edit_undo", json!({ "doc": doc }));
+    let r = ok(&mut a, "doc_remove_hidden", json!({ "doc": doc, "signatures": "flatten" }));
+    assert_eq!(r["undo"], "Sanitize document and flatten signatures");
+    ok(&mut a, "doc_save", json!({ "doc": doc, "path": "flat.pdf" }));
+    let bytes = std::fs::read(dir.join("flat.pdf")).unwrap();
+    assert!(!bytes.windows(10).any(|w| w == b"/ByteRange"));
 }
