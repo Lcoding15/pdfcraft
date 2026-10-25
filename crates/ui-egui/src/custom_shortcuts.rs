@@ -13,6 +13,9 @@ use pdfcraft_engine::commands::{COMMANDS, CommandSpec, Shortcut};
 /// Where the published bindings live in the context's data.
 const DATA_ID: &str = "custom-shortcuts";
 
+/// Commands whose key is the system's and can't be changed here.
+const FIXED: [&str; 1] = ["edit.copy"];
+
 /// The commands whose binding was changed: a new key, or `None` for none. Commands left out keep
 /// their default.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -213,6 +216,11 @@ impl Overrides {
 
     /// Record `to` for `spec`, or forget the change when it is the default anyway.
     fn set(&mut self, spec: &'static CommandSpec, to: Option<Shortcut>) {
+        // Copy is the system's own Ctrl/⌘C (egui delivers it as a clipboard event), which no
+        // binding can move or take away; its menu entry always names that key.
+        if FIXED.contains(&spec.id) {
+            return;
+        }
         let default = match (spec.shortcut, to) {
             (None, None) => true,
             (Some(a), Some(b)) => same(a, b),
@@ -467,6 +475,12 @@ mod tests {
         assert!(o.get(save).is_some());
         assert_eq!(o.assign("no.such.command", cmd("J")).map(|c| c.id), None);
         assert_eq!(o, Overrides::default());
+        // Copy keeps the system's Ctrl/⌘C: it can't be given another key, lose it, or be
+        // changed from the settings (CodeRabbit on #4646).
+        o.assign("edit.copy", cmd("J"));
+        o.remove("edit.copy");
+        assert_eq!(o, Overrides::default());
+        assert_eq!(Overrides::from_json(&serde_json::json!({ "edit.copy": "cmd+J" })), Overrides::default());
     }
 
     #[test]
