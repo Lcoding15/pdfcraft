@@ -26,7 +26,9 @@ fn devicen_pdf(program: &str) -> Vec<u8> {
 
 /// The app with `bytes` open, run until every requested raster has arrived.
 fn rendered(bytes: Vec<u8>) -> Harness<'static, PdfCraftApp> {
-    let mut h = Harness::builder().with_size(egui::vec2(1200.0, 900.0)).build_eframe(move |_cc| {
+    // Frames a 60th of a second apart, so a click and another one inside the double-click time
+    // are two frames, as by hand.
+    let mut h = Harness::builder().with_size(egui::vec2(1200.0, 900.0)).with_step_dt(1.0 / 60.0).build_eframe(move |_cc| {
         let mut app = PdfCraftApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("warned.pdf", None, bytes).expect("opens");
@@ -107,4 +109,34 @@ fn closing_the_note_in_full_screen_does_not_turn_the_page() {
     h.run_steps(30);
     assert_eq!(h.state().views[0].render_warning_note(0), None, "the note is closed");
     assert_eq!(h.state().views[0].current, 0, "and the page stays");
+}
+
+/// CodeRabbit on #4501: a click on the page queues a turn that waits out the double-click time; a
+/// click on the note's close button in that time cancels it, as a followed link does.
+#[test]
+fn closing_the_note_cancels_a_page_turn_already_queued() {
+    let mut h = rendered(two_page_devicen_pdf("{ pop pop pop }"));
+    h.key_press_modifiers(Modifiers::COMMAND, Key::L);
+    h.run_steps(6);
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+    while h.state().views[0].render_warning_note(0).is_none() || h.query_all_by_label("Dismiss").next().is_none() {
+        assert!(std::time::Instant::now() < deadline, "the note in full screen");
+        h.run_steps(2);
+        std::thread::sleep(std::time::Duration::from_millis(5));
+    }
+    let close = h.get_all_by_label("Dismiss").max_by(|a, b| a.rect().min.y.total_cmp(&b.rect().min.y)).expect("the note's close button");
+    let at = close.rect().center();
+    // A click on the page, well below the note: it queues a turn.
+    let page = egui::pos2(at.x - 200.0, at.y + 300.0);
+    for pos in [page, at] {
+        h.hover_at(pos);
+        h.step();
+        for pressed in [true, false] {
+            h.event(egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: Modifiers::NONE });
+        }
+        h.step();
+    }
+    h.run_steps(60);
+    assert_eq!(h.state().views[0].render_warning_note(0), None, "the note is closed");
+    assert_eq!(h.state().views[0].current, 0, "and the turn the page click queued is cancelled");
 }
