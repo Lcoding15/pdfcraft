@@ -69,6 +69,7 @@ mod recovery;
 mod redact;
 mod reload;
 mod render_warnings;
+mod side_panels;
 mod signing;
 mod stamps;
 mod text_select;
