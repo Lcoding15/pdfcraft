@@ -2778,5 +2778,13 @@ theme	Appearance	모양
 	Delete attachment {key}	첨부 파일 {key} 삭제
 @plural	{n} reply|{n} replies	답글 {n}개
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	페이지 도구
+	Insert pages from a file after the selection…	선택 영역 뒤에 파일에서 페이지 삽입…
+	Rotate the selected pages counterclockwise	선택한 페이지를 시계 반대 방향으로 회전
+	Rotate the selected pages clockwise	선택한 페이지를 시계 방향으로 회전
+	Extract the selected pages…	선택한 페이지 추출…
+	Delete the selected pages	선택한 페이지 삭제
+
 # Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
 	Pages whose text couldn't be read: {n}. A match on them isn't listed.	텍스트를 읽을 수 없는 페이지: {n}. 해당 페이지의 일치 항목은 목록에 없습니다.

@@ -2717,5 +2717,13 @@ key	Space	Mellomrom
 	Restore the last view (page, zoom and page display) when a document is opened again	Gjenopprett den siste visningen (side, zoom og sidevisning) når et dokument åpnes igjen
 @plural	{n} reply|{n} replies	{n} svar|{n} svar
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Sideverktøy
+	Insert pages from a file after the selection…	Sett inn sider fra en fil etter utvalget…
+	Rotate the selected pages counterclockwise	Roter de valgte sidene mot klokken
+	Rotate the selected pages clockwise	Roter de valgte sidene med klokken
+	Extract the selected pages…	Trekk ut de valgte sidene…
+	Delete the selected pages	Slett de valgte sidene
+
 # Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
 	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Sider der teksten ikke kunne leses: {n}. Treff på dem er ikke oppført.

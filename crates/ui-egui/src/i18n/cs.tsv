@@ -2848,5 +2848,13 @@ certificate	Version	Verze
 	Today	Dnes
 @plural	{n} reply|{n} replies	{n} odpověď|{n} odpovědi|{n} odpovědí
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Nástroje stránek
+	Insert pages from a file after the selection…	Vložit stránky ze souboru za výběr…
+	Rotate the selected pages counterclockwise	Otočit vybrané stránky proti směru hodinových ručiček
+	Rotate the selected pages clockwise	Otočit vybrané stránky po směru hodinových ručiček
+	Extract the selected pages…	Extrahovat vybrané stránky…
+	Delete the selected pages	Odstranit vybrané stránky
+
 # Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
 	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Stránky, jejichž text nešlo přečíst: {n}. Shody na nich nejsou uvedeny.

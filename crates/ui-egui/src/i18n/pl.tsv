@@ -2637,5 +2637,13 @@ animation effects	Off	Wyłączone
 	Today	Dzisiaj
 @plural	{n} reply|{n} replies	{n} odpowiedź|{n} odpowiedzi|{n} odpowiedzi
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Narzędzia stron
+	Insert pages from a file after the selection…	Wstaw strony z pliku po zaznaczeniu…
+	Rotate the selected pages counterclockwise	Obróć zaznaczone strony w lewo
+	Rotate the selected pages clockwise	Obróć zaznaczone strony w prawo
+	Extract the selected pages…	Wyodrębnij zaznaczone strony…
+	Delete the selected pages	Usuń zaznaczone strony
+
 # Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
 	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Strony, których tekstu nie udało się odczytać: {n}. Dopasowania na nich nie są wymienione.

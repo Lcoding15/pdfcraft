@@ -2778,5 +2778,13 @@ theme	Appearance	स्वरूप
 	Delete attachment {key}	अनुलग्नक {key} हटाएँ
 @plural	{n} reply|{n} replies	{n} जवाब
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	पृष्ठ उपकरण
+	Insert pages from a file after the selection…	चयन के बाद किसी फ़ाइल से पृष्ठ डालें…
+	Rotate the selected pages counterclockwise	चयनित पृष्ठों को वामावर्त घुमाएँ
+	Rotate the selected pages clockwise	चयनित पृष्ठों को दक्षिणावर्त घुमाएँ
+	Extract the selected pages…	चयनित पृष्ठ निकालें…
+	Delete the selected pages	चयनित पृष्ठ हटाएँ
+
 # Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
 	Pages whose text couldn't be read: {n}. A match on them isn't listed.	ऐसे पृष्ठ जिनका पाठ पढ़ा नहीं जा सका: {n}। उन पर कोई मिलान सूचीबद्ध नहीं है।

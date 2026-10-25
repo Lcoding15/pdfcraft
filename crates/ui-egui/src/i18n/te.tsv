@@ -2450,5 +2450,13 @@ animation effects	Off	ఆఫ్
 	Today	ఈరోజు
 @plural	{n} reply|{n} replies	{n} ప్రత్యుత్తరం|{n} ప్రత్యుత్తరాలు
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	పేజీ సాధనాలు
+	Insert pages from a file after the selection…	ఎంపిక తర్వాత ఫైల్ నుండి పేజీలను చొప్పించు…
+	Rotate the selected pages counterclockwise	ఎంచుకున్న పేజీలను అపసవ్య దిశలో తిప్పు
+	Rotate the selected pages clockwise	ఎంచుకున్న పేజీలను సవ్య దిశలో తిప్పు
+	Extract the selected pages…	ఎంచుకున్న పేజీలను సంగ్రహించు…
+	Delete the selected pages	ఎంచుకున్న పేజీలను తొలగించు
+
 # Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
 	Pages whose text couldn't be read: {n}. A match on them isn't listed.	పాఠాన్ని చదవలేకపోయిన పేజీలు: {n}. వాటిలోని సరిపోలికలు జాబితాలో లేవు.

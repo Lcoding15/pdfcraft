@@ -2826,5 +2826,13 @@ theme	Appearance	Aparência
 	Today	Hoje
 @plural	{n} reply|{n} replies	{n} resposta|{n} respostas
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Ferramentas de página
+	Insert pages from a file after the selection…	Inserir páginas de um arquivo após a seleção…
+	Rotate the selected pages counterclockwise	Girar as páginas selecionadas no sentido anti-horário
+	Rotate the selected pages clockwise	Girar as páginas selecionadas no sentido horário
+	Extract the selected pages…	Extrair as páginas selecionadas…
+	Delete the selected pages	Excluir as páginas selecionadas
+
 # Advanced search: pages whose text couldn't be read (#4334) (AI-assisted, not separately native-reviewed)
 	Pages whose text couldn't be read: {n}. A match on them isn't listed.	Páginas cujo texto não pôde ser lido: {n}. Ocorrências nelas não são listadas.
