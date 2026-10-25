@@ -2503,3 +2503,10 @@ animation effects	Off	Изключени
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Днес
 @plural	{n} reply|{n} replies	{n} отговор|{n} отговора
+
+# Sanitize: removing a signed document's signatures (#4622) (AI-assisted, not separately native-reviewed)
+	Sanitize document and remove signatures	Почисти документа и премахни подписите
+	Sanitize document and flatten signatures	Почисти документа и сплескай подписите
+	Keep only how the signatures look, as page content (a name or date they show stays visible)	Запазване само на вида на подписите като съдържание на страницата (името или датата, които показват, остават видими)
+	Remove the digital signatures: their fields, how they look on the page and their validation data	Премахване на цифровите подписи: полетата им, как изглеждат на страницата и данните за проверката им
+	This document is digitally signed. Sanitizing rewrites the whole file, which invalidates the signatures, so it can only go ahead without them.	Този документ е цифрово подписан. Почистването пренаписва целия файл, което прави подписите невалидни, затова може да продължи само без тях.

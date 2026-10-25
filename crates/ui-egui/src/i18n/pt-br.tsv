@@ -2825,3 +2825,10 @@ theme	Appearance	Aparência
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Hoje
 @plural	{n} reply|{n} replies	{n} resposta|{n} respostas
+
+# Sanitize: removing a signed document's signatures (#4622) (AI-assisted, not separately native-reviewed)
+	Sanitize document and remove signatures	Sanitizar o documento e remover as assinaturas
+	Sanitize document and flatten signatures	Sanitizar o documento e nivelar as assinaturas
+	Keep only how the signatures look, as page content (a name or date they show stays visible)	Manter apenas a aparência das assinaturas, como conteúdo da página (um nome ou data que mostram continua visível)
+	Remove the digital signatures: their fields, how they look on the page and their validation data	Remover as assinaturas digitais: seus campos, sua aparência na página e seus dados de validação
+	This document is digitally signed. Sanitizing rewrites the whole file, which invalidates the signatures, so it can only go ahead without them.	Este documento está assinado digitalmente. A sanitização reescreve o arquivo inteiro, o que invalida as assinaturas, então só pode prosseguir sem elas.

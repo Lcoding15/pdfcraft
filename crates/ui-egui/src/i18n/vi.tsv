@@ -2807,3 +2807,10 @@ key	Space	Space
 # AI-assisted additions for restoring the last view (#1767) (2026-10-16); not reviewed by a native speaker.
 	Restore the last view (page, zoom and page display) when a document is opened again	Khôi phục chế độ xem gần nhất (trang, thu phóng và hiển thị trang) khi mở lại tài liệu
 @plural	{n} reply|{n} replies	{n} câu trả lời
+
+# Sanitize: removing a signed document's signatures (#4622) (AI-assisted, not separately native-reviewed)
+	Sanitize document and remove signatures	Làm sạch tài liệu và xóa chữ ký
+	Sanitize document and flatten signatures	Làm sạch tài liệu và làm phẳng chữ ký
+	Keep only how the signatures look, as page content (a name or date they show stays visible)	Chỉ giữ hình thức của chữ ký, dưới dạng nội dung trang (tên hoặc ngày hiển thị vẫn nhìn thấy được)
+	Remove the digital signatures: their fields, how they look on the page and their validation data	Xóa chữ ký số: các trường, hình thức hiển thị trên trang và dữ liệu xác thực của chúng
+	This document is digitally signed. Sanitizing rewrites the whole file, which invalidates the signatures, so it can only go ahead without them.	Tài liệu này có chữ ký số. Làm sạch sẽ ghi lại toàn bộ tệp, khiến chữ ký mất hiệu lực, nên chỉ có thể tiếp tục khi không có chúng.

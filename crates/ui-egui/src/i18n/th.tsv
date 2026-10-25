@@ -2703,3 +2703,10 @@ theme	Appearance	ลักษณะที่ปรากฏ
 # AI-assisted additions for restoring the last view (#1767) (2026-10-22); not reviewed by a native speaker.
 	Restore the last view (page, zoom and page display) when a document is opened again	คืนค่ามุมมองล่าสุด (หน้า การซูม และการแสดงหน้า) เมื่อเปิดเอกสารอีกครั้ง
 @plural	{n} reply|{n} replies	การตอบกลับ {n} รายการ
+
+# Sanitize: removing a signed document's signatures (#4622) (AI-assisted, not separately native-reviewed)
+	Sanitize document and remove signatures	ล้างข้อมูลแฝงในเอกสารและลบลายเซ็น
+	Sanitize document and flatten signatures	ล้างข้อมูลแฝงในเอกสารและแปลงลายเซ็นเป็นเนื้อหา
+	Keep only how the signatures look, as page content (a name or date they show stays visible)	เก็บไว้เฉพาะลักษณะของลายเซ็นเป็นเนื้อหาของหน้า (ชื่อหรือวันที่ที่แสดงยังคงมองเห็นได้)
+	Remove the digital signatures: their fields, how they look on the page and their validation data	ลบลายเซ็นดิจิทัล: ฟิลด์ของลายเซ็น ลักษณะที่ปรากฏบนหน้า และข้อมูลการตรวจสอบ
+	This document is digitally signed. Sanitizing rewrites the whole file, which invalidates the signatures, so it can only go ahead without them.	เอกสารนี้มีลายเซ็นดิจิทัล การล้างข้อมูลจะเขียนไฟล์ทั้งหมดใหม่ ซึ่งทำให้ลายเซ็นใช้ไม่ได้ จึงทำได้เฉพาะเมื่อลบลายเซ็นออก
