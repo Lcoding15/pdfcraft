@@ -106,7 +106,10 @@ impl PdfCraftApp {
         let last = std::mem::take(&mut self.last_session);
         #[cfg(not(target_arch = "wasm32"))]
         {
-            let skip: Vec<String> = skip.iter().map(|p| absolute(p)).collect();
+            // A file with a recovery snapshot is the Recovery dialog's to offer, as below: opening it
+            // here as well would leave two tabs on one file once it is recovered.
+            let skip: Vec<String> =
+                skip.iter().map(|p| absolute(p)).chain(self.recoverable.iter().filter_map(|m| m.path.as_deref().map(absolute))).collect();
             let mut prompt = self.password_prompt.take();
             for path in self.pinned_tabs.clone() {
                 let open =
@@ -125,7 +128,6 @@ impl PdfCraftApp {
         if self.reopen_last_session {
             let skip: Vec<String> =
                 skip.iter().map(|p| absolute(p)).chain(self.recoverable.iter().filter_map(|m| m.path.as_deref().map(absolute))).collect();
-            let mut active = None;
             let mut prompt = self.password_prompt.take();
             for f in &last.files {
                 let open = |app: &Self| {
@@ -143,12 +145,14 @@ impl PdfCraftApp {
                     && let Some(view) = self.views.last_mut()
                 {
                     view.go_to_page(f.page);
-                    if last.active.as_ref() == Some(&f.path) {
-                        active = Some(self.views.len() - 1);
-                    }
                 }
             }
             self.password_prompt = prompt;
+            // The tab that was active, found by its file once every tab is open: a pinned file
+            // opened above, before this loop, is active again too.
+            let active = last.active.as_ref().and_then(|a| {
+                self.views.iter().position(|v| self.session.get(v.id).and_then(|d| d.path.as_deref()).map(absolute).as_deref() == Some(a.as_str()))
+            });
             if active.is_some() {
                 self.active = active;
             }

@@ -1603,6 +1603,14 @@ impl PdfCraftApp {
         {
             view.enter_presentation();
         }
+        // A pinned file goes among the pinned tabs, which lead the strip (#2926), whenever it is
+        // opened; `move_tab` keeps the active tab.
+        if self.tab_pinned(id)
+            && let Some(last) = self.views.len().checked_sub(1)
+        {
+            let to = self.views.iter().take(last).filter(|v| self.tab_pinned(v.id)).count();
+            self.move_tab(last, to);
+        }
         // Full screen is asked for, never taken: a document can't put the app in full screen on
         // its own (the prompt is `dialogs::full_screen_prompt`).
         if activate && initial.full_screen {
