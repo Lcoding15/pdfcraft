@@ -56,6 +56,22 @@ pub(crate) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, pages: us
         format!("{count}{more}")
     };
     ui.label(egui::RichText::new(status).font(theme::semibold(12.5)));
+    // The pages with a match, once every page has been searched (#4334): selected, so Extract,
+    // Print or Delete act on them; or copied as a page list ("1-3, 7") for a page field.
+    let mut select = None;
+    if !find.matches.is_empty() && searched >= pages {
+        let found: std::collections::BTreeSet<usize> = find.matches.iter().map(|(p, _)| *p).collect();
+        ui.horizontal(|ui| {
+            let n = found.len().to_string();
+            let tip = crate::i18n::fmt(tl!("Select the {n} pages with a match, for Extract, Print or Delete"), &[("n", &n)]);
+            if ui.button(tl!("Select pages")).on_hover_text(tip).clicked() {
+                select = Some(found.iter().copied().collect::<Vec<_>>());
+            }
+            if ui.button(tl!("Copy page numbers")).on_hover_text(tl!("Copy the pages with a match as a list such as 1-3, 7")).clicked() {
+                ui.ctx().copy_text(crate::page_selection_ui::formatted(&found));
+            }
+        });
+    }
     ui.add_space(4.0);
     let mut go = None;
     let mut last_page = None;
@@ -95,5 +111,8 @@ pub(crate) fn panel(ui: &mut egui::Ui, t: &Tokens, view: &mut DocView, pages: us
     }
     if let Some(i) = go {
         view.go_to_match(i);
+    }
+    if let Some(pages) = select {
+        view.select_pages(&pages);
     }
 }
