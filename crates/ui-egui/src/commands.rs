@@ -708,7 +708,7 @@ impl PdfCraftApp {
     /// next tab is the first and the previous one the last.
     fn step_tab(&mut self, forward: bool) {
         if self.tab_cycle == crate::tab_cycle::TabCycle::Recent {
-            let (shown, open) = (self.shown_tab(), self.tab_keys());
+            let (shown, open) = (self.front_tab(), self.tab_keys());
             match self.recent_tabs.step(shown, &open, forward) {
                 Some(TabKey::Doc(id)) => {
                     if let Some(i) = self.views.iter().position(|v| v.id == id) {
@@ -736,7 +736,7 @@ impl PdfCraftApp {
     }
 
     /// The tab showing; `None` is Home.
-    fn shown_tab(&self) -> Option<TabKey> {
+    fn front_tab(&self) -> Option<TabKey> {
         if self.combine_showing() {
             return Some(TabKey::Combine);
         }
@@ -746,7 +746,7 @@ impl PdfCraftApp {
     /// Keep the tabs most recently shown first, for Next tab and Previous tab in that order
     /// (#2063). Ctrl held keeps a cycle going (⌃ on macOS, where ⌃Tab is the shortcut).
     pub(crate) fn note_shown_tab(&mut self, ctx: &egui::Context) {
-        let (shown, open, held) = (self.shown_tab(), self.tab_keys(), ctx.input(|i| i.modifiers.ctrl));
+        let (shown, open, held) = (self.front_tab(), self.tab_keys(), ctx.input(|i| i.modifiers.ctrl));
         self.recent_tabs.note(shown, &open, held);
     }
 
