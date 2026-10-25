@@ -2804,3 +2804,10 @@ theme	Appearance	ظاهر
 	two cells would both be named {name}	دو خانه هر دو با نام {name} نام‌گذاری می‌شوند
 	a field named {name} already exists	فیلدی با نام {name} از قبل وجود دارد
 	Today	امروز
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	تنظیمات ذخیره‌شده
+	Save Settings	ذخیرهٔ تنظیمات
+	Delete Settings	حذف تنظیمات
+	[Custom]	[سفارشی]
+	Name a text watermark to save it	برای ذخیرهٔ واترمارک متنی، برای آن نامی بگذارید
