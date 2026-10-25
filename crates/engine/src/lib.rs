@@ -2555,6 +2555,16 @@ impl EditCtx {
     }
 }
 
+/// Whether `edit` (or a batch inside it) sanitizes with the signatures removed or flattened:
+/// the one full rewrite allowed on a signed document, asked for knowing it (#4622).
+fn unsigns(edit: &Edit) -> bool {
+    match edit {
+        Edit::SanitizeSigned(_) => true,
+        Edit::Batch { edits, .. } => edits.iter().any(unsigns),
+        _ => false,
+    }
+}
+
 /// Perform an edit on a working copy (the caller discards it on error).
 fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> Result<(), EditError> {
     match edit {
@@ -4149,7 +4159,7 @@ impl Session {
         // So does any edit to a file rebuilt from object headers: it has no chain to append to.
         let rewrites = |c: &pdfcraft_cos::Document| c.full_save_required() || c.encryption_changed();
         // Sanitizing with the signatures removed is asked for knowing that (#4622).
-        let unsigns = matches!(edit, Edit::SanitizeSigned(_));
+        let unsigns = unsigns(&edit);
         if signed && !unsigns && ((rewrites(&next) && !rewrites(&editor.cos)) || (next.is_modified() && next.revisions().is_empty())) {
             return Err(EditError::SignedRewrite(edit.label().to_string()));
         }

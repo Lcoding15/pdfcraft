@@ -3109,6 +3109,39 @@ fn removed_signatures_leave_the_structure_tree_and_the_saved_file() {
     }
 }
 
+/// CodeRabbit on #4650: a signature widget whose `/Parent` chain is deeper than the walk goes
+/// is refused, not kept with its signature for the rewrite.
+#[test]
+fn a_signature_widget_too_deep_to_tell_is_refused() {
+    use crate::sanitize::{Signatures, sanitize_signed};
+
+    let mut doc = signed_form();
+    let mut top = Dict::new();
+    top.set(b"FT".to_vec(), Object::name("Sig"));
+    let mut parent = doc.add(Object::Dict(top));
+    for _ in 0..100 {
+        let mut d = Dict::new();
+        d.set(b"Parent".to_vec(), Object::Ref(parent));
+        parent = doc.add(Object::Dict(d));
+    }
+    let mut w = Dict::new();
+    w.set(b"Type".to_vec(), Object::name("Annot"));
+    w.set(b"Subtype".to_vec(), Object::name("Widget"));
+    w.set(b"Parent".to_vec(), Object::Ref(parent));
+    let w = doc.add(Object::Dict(w));
+    let page = pdfcraft_model::pages(&doc)[0].obj;
+    doc.update_dict(page, |d| {
+        if let Some(Object::Array(a)) = d.get_mut(b"Annots") {
+            a.push(Object::Ref(w));
+        }
+    })
+    .unwrap();
+    for how in [Signatures::Remove, Signatures::Flatten] {
+        let out = sanitize_signed(&mut doc.clone(), how);
+        assert!(matches!(out, Err(RedactError::TooDeep)), "{how:?}: {out:?}");
+    }
+}
+
 #[test]
 fn a_signature_widget_whose_parents_loop_is_left_alone() {
     // 5 → 6 → 5: no /FT anywhere, so not a signature widget; the walk ends.

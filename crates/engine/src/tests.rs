@@ -8733,6 +8733,12 @@ fn sanitizing_a_signed_document_can_remove_or_flatten_its_signatures() {
     let signed = s.sign(id, &digital_id, opts).unwrap();
     s.mark_signed(id, signed.clone(), Some("/tmp/signed.pdf".into())).unwrap();
     assert!(matches!(s.apply(id, Edit::Sanitize), Err(EditError::SignedRewrite(_))), "the default still refuses");
+    // In a batch too (CodeRabbit on #4650): the batch that removes the signatures may rewrite.
+    let batch = |e: Edit| Edit::Batch { label: "Clean up".into(), edits: vec![e] };
+    assert!(matches!(s.apply(id, batch(Edit::Sanitize)), Err(EditError::SignedRewrite(_))));
+    s.apply(id, batch(Edit::SanitizeSigned(pdfcraft_redact::sanitize::Signatures::Remove))).unwrap();
+    assert!(s.get(id).unwrap().signatures.is_empty());
+    s.undo(id).unwrap();
     s.apply(id, Edit::SanitizeSigned(pdfcraft_redact::sanitize::Signatures::Remove)).unwrap();
     let doc = s.get(id).unwrap();
     assert!(!doc.is_signed() && doc.signatures.is_empty(), "{:?}", doc.signatures);

@@ -745,8 +745,14 @@ fn drop_signature_data(doc: &mut Document, keep: &std::collections::HashSet<ObjR
     let mut gone = std::collections::HashSet::new();
     for p in pdfcraft_model::pages(doc) {
         let list = annots_of(doc, &p.dict);
-        let (kept, dropped): (Vec<Object>, Vec<Object>) =
-            list.iter().cloned().partition(|a| a.as_ref().is_some_and(|r| keep.contains(&r)) || !is_signature_widget(doc, a));
+        let (mut kept, mut dropped) = (Vec::new(), Vec::new());
+        for a in list.iter().cloned() {
+            if a.as_ref().is_some_and(|r| keep.contains(&r)) || !is_signature_widget(doc, &a)? {
+                kept.push(a);
+            } else {
+                dropped.push(a);
+            }
+        }
         gone.extend(dropped.iter().filter_map(Object::as_ref));
         if kept.len() != list.len() {
             removed = removed.saturating_add(list.len() - kept.len());
@@ -782,23 +788,24 @@ fn drop_signature_data(doc: &mut Document, keep: &std::collections::HashSet<ObjR
 }
 
 /// Whether `a` is a widget of a signature field: its own `/FT`, or the nearest one up its
-/// `/Parent` chain, is `/Sig` (bounded, and a cycle ends the walk).
-fn is_signature_widget(doc: &Document, a: &Object) -> bool {
-    let Some(d) = doc.resolve(a).as_dict().cloned() else { return false };
+/// `/Parent` chain, is `/Sig` (a cycle ends the walk). A chain deeper than the walk goes is an
+/// error, not a guess: kept, such a widget would carry its signature into the rewrite.
+fn is_signature_widget(doc: &Document, a: &Object) -> Result<bool, RedactError> {
+    let Some(d) = doc.resolve(a).as_dict().cloned() else { return Ok(false) };
     if d.get(b"Subtype").and_then(Object::as_name) != Some(b"Widget".as_slice()) {
-        return false;
+        return Ok(false);
     }
     let mut node = d;
     let mut seen = std::collections::HashSet::new();
     for _ in 0..64 {
         if let Some(ft) = node.get(b"FT").map(|o| doc.resolve(o)) {
-            return ft.as_name() == Some(b"Sig".as_slice());
+            return Ok(ft.as_name() == Some(b"Sig".as_slice()));
         }
-        let Some(parent) = node.reference(b"Parent").filter(|r| seen.insert(*r)) else { return false };
-        let Some(next) = doc.get(parent).as_dict().cloned() else { return false };
+        let Some(parent) = node.reference(b"Parent").filter(|r| seen.insert(*r)) else { return Ok(false) };
+        let Some(next) = doc.get(parent).as_dict().cloned() else { return Ok(false) };
         node = next;
     }
-    false
+    Err(RedactError::TooDeep)
 }
 
 /// Sanitize Document: remove every category of hidden information.
