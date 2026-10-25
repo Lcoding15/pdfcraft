@@ -2826,6 +2826,14 @@ theme	Appearance	Aparência
 	Today	Hoje
 @plural	{n} reply|{n} replies	{n} resposta|{n} respostas
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	Ferramentas de página
+	Insert pages from a file after the selection…	Inserir páginas de um arquivo após a seleção…
+	Rotate the selected pages counterclockwise	Girar as páginas selecionadas no sentido anti-horário
+	Rotate the selected pages clockwise	Girar as páginas selecionadas no sentido horário
+	Extract the selected pages…	Extrair as páginas selecionadas…
+	Delete the selected pages	Excluir as páginas selecionadas
+
 # Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
 	Saved Settings	Configurações salvas
 	Save Settings	Salvar configurações

@@ -2491,6 +2491,14 @@ animation effects	Off	關
 	Today	今天
 @plural	{n} reply|{n} replies	{n} 則回覆
 
+# Pages panel: the Page tools menu (#4415) (AI-assisted, not separately native-reviewed)
+	Page tools	頁面工具
+	Insert pages from a file after the selection…	在所選內容後插入檔案中的頁面…
+	Rotate the selected pages counterclockwise	逆時針旋轉所選頁面
+	Rotate the selected pages clockwise	順時針旋轉所選頁面
+	Extract the selected pages…	擷取所選頁面…
+	Delete the selected pages	刪除所選頁面
+
 # Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
 	Saved Settings	已儲存的設定
 	Save Settings	儲存設定
