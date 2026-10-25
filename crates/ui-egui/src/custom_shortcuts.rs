@@ -236,8 +236,9 @@ impl Overrides {
     pub fn from_json(v: &serde_json::Value) -> Self {
         let mut out = Self::default();
         let Some(map) = v.as_object() else { return out };
-        for (id, s) in map.iter().take(COMMANDS.len()) {
-            let Some(spec) = pdfcraft_engine::commands::command(id) else { continue };
+        // Unknown commands are skipped before the cap, so they can't crowd out a real one.
+        let known = map.iter().filter_map(|(id, s)| pdfcraft_engine::commands::command(id).map(|spec| (spec, s)));
+        for (spec, s) in known.take(COMMANDS.len()) {
             match s {
                 serde_json::Value::Null => out.set(spec, None),
                 serde_json::Value::String(t) => {
@@ -490,6 +491,12 @@ mod tests {
             assert_eq!(get(id), pdfcraft_engine::commands::command(id).unwrap().shortcut, "{id} keeps its default");
         }
         assert_eq!(Overrides::from_json(&serde_json::json!([1, 2])), Overrides::default());
+        // Many unknown commands sorting first don't push a real one out.
+        let mut crowded: serde_json::Map<String, serde_json::Value> =
+            (0..COMMANDS.len() + 5).map(|i| (format!("a.unknown{i:04}"), serde_json::json!("cmd+J"))).collect();
+        crowded.insert("file.open".into(), serde_json::json!("cmd+shift+J"));
+        let read = Overrides::from_json(&serde_json::Value::Object(crowded));
+        assert!(read.get(pdfcraft_engine::commands::command("file.open").unwrap()).is_some_and(|k| same(k, Shortcut::cmd_shift("J"))));
         // A kept key that is another command's default takes it from that command.
         let save_key = pdfcraft_engine::commands::command("file.save").unwrap().shortcut.unwrap();
         let read = Overrides::from_json(&serde_json::json!({ "file.open": token(save_key) }));
