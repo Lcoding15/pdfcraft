@@ -2711,3 +2711,8 @@ theme	Appearance	ลักษณะที่ปรากฏ
 	Rotate the selected pages clockwise	หมุนหน้าที่เลือกตามเข็มนาฬิกา
 	Extract the selected pages…	แยกหน้าที่เลือกออก…
 	Delete the selected pages	ลบหน้าที่เลือก
+
+# Ctrl+Tab: most recently used order (#2063) (AI-assisted, not separately native-reviewed)
+	Next tab and Previous tab	แท็บถัดไปและแท็บก่อนหน้า
+	In tab order	ตามลำดับแท็บ
+	Most recently used first	ที่ใช้ล่าสุดก่อน

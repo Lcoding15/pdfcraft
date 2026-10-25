@@ -2544,3 +2544,8 @@ animation effects	Off	Kapalı
 	Rotate the selected pages clockwise	Seçili sayfaları saat yönünde döndür
 	Extract the selected pages…	Seçili sayfaları ayıkla…
 	Delete the selected pages	Seçili sayfaları sil
+
+# Ctrl+Tab: most recently used order (#2063) (AI-assisted, not separately native-reviewed)
+	Next tab and Previous tab	Sonraki sekme ve önceki sekme
+	In tab order	Sekme sırasına göre
+	Most recently used first	En son kullanılanlar önce

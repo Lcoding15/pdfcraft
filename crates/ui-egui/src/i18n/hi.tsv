@@ -2785,3 +2785,8 @@ theme	Appearance	स्वरूप
 	Rotate the selected pages clockwise	चयनित पृष्ठों को दक्षिणावर्त घुमाएँ
 	Extract the selected pages…	चयनित पृष्ठ निकालें…
 	Delete the selected pages	चयनित पृष्ठ हटाएँ
+
+# Ctrl+Tab: most recently used order (#2063) (AI-assisted, not separately native-reviewed)
+	Next tab and Previous tab	अगला टैब और पिछला टैब
+	In tab order	टैब के क्रम में
+	Most recently used first	सबसे हाल में उपयोग किए गए पहले

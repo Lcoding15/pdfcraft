@@ -2804,3 +2804,8 @@ theme	Appearance	ظاهر
 	two cells would both be named {name}	دو خانه هر دو با نام {name} نام‌گذاری می‌شوند
 	a field named {name} already exists	فیلدی با نام {name} از قبل وجود دارد
 	Today	امروز
+
+# Ctrl+Tab: most recently used order (#2063) (AI-assisted, not separately native-reviewed)
+	Next tab and Previous tab	زبانهٔ بعدی و زبانهٔ قبلی
+	In tab order	به ترتیب زبانه‌ها
+	Most recently used first	اول آخرین استفاده‌شده‌ها

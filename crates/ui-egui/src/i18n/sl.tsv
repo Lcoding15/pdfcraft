@@ -2553,3 +2553,8 @@ animation effects	Off	Izklopljeni
 	Rotate the selected pages clockwise	Zavrti izbrane strani v smeri urnega kazalca
 	Extract the selected pages…	Izvleci izbrane strani…
 	Delete the selected pages	Izbriši izbrane strani
+
+# Ctrl+Tab: most recently used order (#2063) (AI-assisted, not separately native-reviewed)
+	Next tab and Previous tab	Naslednji in prejšnji zavihek
+	In tab order	V vrstnem redu zavihkov
+	Most recently used first	Nazadnje uporabljeni najprej

@@ -2824,3 +2824,8 @@ certificate	Version	الإصدار
 	Rotate the selected pages clockwise	تدوير الصفحات المحددة باتجاه عقارب الساعة
 	Extract the selected pages…	استخراج الصفحات المحددة…
 	Delete the selected pages	حذف الصفحات المحددة
+
+# Ctrl+Tab: most recently used order (#2063) (AI-assisted, not separately native-reviewed)
+	Next tab and Previous tab	علامة التبويب التالية والسابقة
+	In tab order	بترتيب علامات التبويب
+	Most recently used first	الأحدث استخدامًا أولًا

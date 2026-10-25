@@ -2814,3 +2814,8 @@ certificate	Version	Version
 	Rotate the selected pages clockwise	Faire pivoter les pages sélectionnées dans le sens horaire
 	Extract the selected pages…	Extraire les pages sélectionnées…
 	Delete the selected pages	Supprimer les pages sélectionnées
+
+# Ctrl+Tab: most recently used order (#2063) (AI-assisted, not separately native-reviewed)
+	Next tab and Previous tab	Onglet suivant et onglet précédent
+	In tab order	Dans l'ordre des onglets
+	Most recently used first	Les plus récemment utilisés d'abord

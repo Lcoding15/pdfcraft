@@ -2456,3 +2456,8 @@ animation effects	Off	ປິດ
 	Rotate the selected pages clockwise	ໝູນໜ້າທີ່ເລືອກຕາມເຂັມໂມງ
 	Extract the selected pages…	ແຍກໜ້າທີ່ເລືອກອອກ…
 	Delete the selected pages	ລຶບໜ້າທີ່ເລືອກ
+
+# Ctrl+Tab: most recently used order (#2063) (AI-assisted, not separately native-reviewed)
+	Next tab and Previous tab	ແຖບຖັດໄປ ແລະ ແຖບກ່ອນໜ້າ
+	In tab order	ຕາມລຳດັບແຖບ
+	Most recently used first	ທີ່ໃຊ້ຫຼ້າສຸດກ່ອນ

@@ -2809,3 +2809,8 @@ theme	Appearance	Aspect
 	Rotate the selected pages clockwise	Rotește paginile selectate în sens orar
 	Extract the selected pages…	Extrage paginile selectate…
 	Delete the selected pages	Șterge paginile selectate
+
+# Ctrl+Tab: most recently used order (#2063) (AI-assisted, not separately native-reviewed)
+	Next tab and Previous tab	Fila următoare și fila anterioară
+	In tab order	În ordinea filelor
+	Most recently used first	Cele folosite cel mai recent întâi
