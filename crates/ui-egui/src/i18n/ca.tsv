@@ -2792,3 +2792,7 @@ theme	Appearance	Aspecte
 	Attaching files is not available on the web yet	Encara no es poden adjuntar fitxers al web
 	Delete attachment	Elimina l'adjunt
 	Delete attachment {key}	Elimina l'adjunt {key}
+
+# Undo and Redo buttons in the mode bar (#4050): the command's name and its shortcut, as Save ({key}) (AI-assisted, not separately native-reviewed)
+	Undo ({key})	Desfés ({key})
+	Redo ({key})	Refés ({key})
