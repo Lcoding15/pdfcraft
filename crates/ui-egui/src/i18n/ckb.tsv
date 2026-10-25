@@ -2732,3 +2732,10 @@ certificate	Version	وەشان
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	ئەمڕۆ
 @plural	{n} reply|{n} replies	{n} وەڵام|{n} وەڵام
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	ڕێکخستنە پاشەکەوتکراوەکان
+	Save Settings	پاشەکەوتکردنی ڕێکخستنەکان
+	Delete Settings	سڕینەوەی ڕێکخستنەکان
+	[Custom]	[تایبەت]
+	Name a text watermark to save it	ناوێک بۆ واتەرمارکی دەق دابنێ بۆ پاشەکەوتکردنی

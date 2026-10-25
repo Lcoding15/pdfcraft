@@ -2778,3 +2778,10 @@ theme	Appearance	Tampilan
 	Delete attachment	Hapus lampiran
 	Delete attachment {key}	Hapus lampiran {key}
 @plural	{n} reply|{n} replies	{n} balasan
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Pengaturan tersimpan
+	Save Settings	Simpan pengaturan
+	Delete Settings	Hapus pengaturan
+	[Custom]	[Kustom]
+	Name a text watermark to save it	Beri nama tanda air teks untuk menyimpannya

@@ -2448,3 +2448,10 @@ animation effects	Off	ປິດ
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	ມື້ນີ້
 @plural	{n} reply|{n} replies	ການຕອບກັບ {n} ລາຍການ
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	ການຕັ້ງຄ່າທີ່ບັນທຶກໄວ້
+	Save Settings	ບັນທຶກການຕັ້ງຄ່າ
+	Delete Settings	ລຶບການຕັ້ງຄ່າ
+	[Custom]	[ກຳນົດເອງ]
+	Name a text watermark to save it	ຕັ້ງຊື່ລາຍນ້ຳຂໍ້ຄວາມເພື່ອບັນທຶກມັນ

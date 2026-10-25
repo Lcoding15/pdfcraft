@@ -2810,3 +2810,10 @@ theme	Appearance	Teema
 	Delete attachment	Poista liite
 	Delete attachment {key}	Poista liite {key}
 @plural	{n} reply|{n} replies	{n} vastaus|{n} vastausta
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Tallennetut asetukset
+	Save Settings	Tallenna asetukset
+	Delete Settings	Poista asetukset
+	[Custom]	[Mukautettu]
+	Name a text watermark to save it	Nimeä tekstivesileima tallentaaksesi sen

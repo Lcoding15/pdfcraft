@@ -2777,3 +2777,10 @@ theme	Appearance	모양
 	Delete attachment	첨부 파일 삭제
 	Delete attachment {key}	첨부 파일 {key} 삭제
 @plural	{n} reply|{n} replies	답글 {n}개
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	저장된 설정
+	Save Settings	설정 저장
+	Delete Settings	설정 삭제
+	[Custom]	[사용자 지정]
+	Name a text watermark to save it	저장하려면 텍스트 워터마크에 이름을 지정하세요

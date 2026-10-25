@@ -2801,3 +2801,10 @@ theme	Appearance	Aspect
 	Delete attachment	Ștergere atașament
 	Delete attachment {key}	Ștergere atașament {key}
 @plural	{n} reply|{n} replies	{n} răspuns|{n} răspunsuri|{n} de răspunsuri
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Setări salvate
+	Save Settings	Salvează setările
+	Delete Settings	Șterge setările
+	[Custom]	[Personalizat]
+	Name a text watermark to save it	Denumiți un filigran text pentru a-l salva

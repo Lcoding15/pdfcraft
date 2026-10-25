@@ -2539,3 +2539,10 @@ animation effects	Off	Ki
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Ma
 @plural	{n} reply|{n} replies	{n} válasz|{n} válasz
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Mentett beállítások
+	Save Settings	Beállítások mentése
+	Delete Settings	Beállítások törlése
+	[Custom]	[Egyéni]
+	Name a text watermark to save it	Adjon nevet a szöveges vízjelnek a mentéséhez

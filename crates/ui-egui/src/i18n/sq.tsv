@@ -2527,3 +2527,10 @@ animation effects	Off	Joaktiv
 	Delete attachment	Fshi bashkëngjitjen
 	Delete attachment {key}	Fshi bashkëngjitjen {key}
 @plural	{n} reply|{n} replies	{n} përgjigje|{n} përgjigje
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Cilësimet e ruajtura
+	Save Settings	Ruaj cilësimet
+	Delete Settings	Fshi cilësimet
+	[Custom]	[I personalizuar]
+	Name a text watermark to save it	Emërtoni një filigran teksti për ta ruajtur

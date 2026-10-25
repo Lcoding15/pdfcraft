@@ -2541,3 +2541,10 @@ animation effects	Off	Aus
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Heute
 @plural	{n} reply|{n} replies	{n} Antwort|{n} Antworten
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Gespeicherte Einstellungen
+	Save Settings	Einstellungen speichern
+	Delete Settings	Einstellungen löschen
+	[Custom]	[Benutzerdefiniert]
+	Name a text watermark to save it	Benenne ein Text-Wasserzeichen, um es zu speichern

@@ -2449,3 +2449,10 @@ animation effects	Off	ఆఫ్
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	ఈరోజు
 @plural	{n} reply|{n} replies	{n} ప్రత్యుత్తరం|{n} ప్రత్యుత్తరాలు
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	సేవ్ చేసిన సెట్టింగ్‌లు
+	Save Settings	సెట్టింగ్‌లను సేవ్ చేయి
+	Delete Settings	సెట్టింగ్‌లను తొలగించు
+	[Custom]	[అనుకూలం]
+	Name a text watermark to save it	సేవ్ చేయడానికి టెక్స్ట్ వాటర్‌మార్క్‌కు పేరు పెట్టండి

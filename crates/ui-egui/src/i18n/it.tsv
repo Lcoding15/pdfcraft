@@ -2772,3 +2772,10 @@ certificate	SHA-256 digest	Impronta SHA-256
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Oggi
 @plural	{n} reply|{n} replies	{n} risposta|{n} risposte
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Impostazioni salvate
+	Save Settings	Salva impostazioni
+	Delete Settings	Elimina impostazioni
+	[Custom]	[Personalizzato]
+	Name a text watermark to save it	Assegna un nome a una filigrana di testo per salvarla

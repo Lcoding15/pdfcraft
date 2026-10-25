@@ -2538,3 +2538,10 @@ animation effects	Off	Өшірулі
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Бүгін
 @plural	{n} reply|{n} replies	{n} жауап|{n} жауап
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Сақталған параметрлер
+	Save Settings	Параметрлерді сақтау
+	Delete Settings	Параметрлерді жою
+	[Custom]	[Реттелетін]
+	Name a text watermark to save it	Сақтау үшін мәтіндік су таңбасына ат беріңіз

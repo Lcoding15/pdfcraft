@@ -2546,3 +2546,10 @@ animation effects	Off	Ανενεργά
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Σήμερα
 @plural	{n} reply|{n} replies	{n} απάντηση|{n} απαντήσεις
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Αποθηκευμένες ρυθμίσεις
+	Save Settings	Αποθήκευση ρυθμίσεων
+	Delete Settings	Διαγραφή ρυθμίσεων
+	[Custom]	[Προσαρμοσμένο]
+	Name a text watermark to save it	Ονομάστε ένα υδατογράφημα κειμένου για να το αποθηκεύσετε

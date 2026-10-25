@@ -2540,3 +2540,10 @@ animation effects	Off	オフ
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	今日
 @plural	{n} reply|{n} replies	{n} 件の返信
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	保存された設定
+	Save Settings	設定を保存
+	Delete Settings	設定を削除
+	[Custom]	[カスタム]
+	Name a text watermark to save it	保存するにはテキストの透かしに名前を付けてください

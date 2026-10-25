@@ -2504,3 +2504,10 @@ animation effects	Off	关
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	今天
 @plural	{n} reply|{n} replies	{n} 条回复
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	已保存的设置
+	Save Settings	保存设置
+	Delete Settings	删除设置
+	[Custom]	[自定义]
+	Name a text watermark to save it	为文本水印命名以保存它

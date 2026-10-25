@@ -2847,3 +2847,10 @@ certificate	Version	Verze
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Dnes
 @plural	{n} reply|{n} replies	{n} odpověď|{n} odpovědi|{n} odpovědí
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Uložená nastavení
+	Save Settings	Uložit nastavení
+	Delete Settings	Odstranit nastavení
+	[Custom]	[Vlastní]
+	Name a text watermark to save it	Pojmenujte textový vodoznak, abyste ho mohli uložit

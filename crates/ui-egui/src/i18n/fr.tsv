@@ -2806,3 +2806,10 @@ certificate	Version	Version
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Aujourd'hui
 @plural	{n} reply|{n} replies	{n} réponse|{n} réponses
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Paramètres enregistrés
+	Save Settings	Enregistrer les paramètres
+	Delete Settings	Supprimer les paramètres
+	[Custom]	[Personnalisé]
+	Name a text watermark to save it	Nommez un filigrane de texte pour l'enregistrer

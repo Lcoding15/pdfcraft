@@ -2777,3 +2777,10 @@ theme	Appearance	स्वरूप
 	Delete attachment	अनुलग्नक हटाएँ
 	Delete attachment {key}	अनुलग्नक {key} हटाएँ
 @plural	{n} reply|{n} replies	{n} जवाब
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	सहेजी गई सेटिंग्स
+	Save Settings	सेटिंग्स सहेजें
+	Delete Settings	सेटिंग्स हटाएँ
+	[Custom]	[कस्टम]
+	Name a text watermark to save it	सहेजने के लिए टेक्स्ट वॉटरमार्क को नाम दें

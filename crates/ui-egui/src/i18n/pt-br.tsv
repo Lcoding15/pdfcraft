@@ -2825,3 +2825,10 @@ theme	Appearance	Aparência
 # Date picker: Today button (#4274) (AI-assisted, not separately native-reviewed)
 	Today	Hoje
 @plural	{n} reply|{n} replies	{n} resposta|{n} respostas
+
+# Add Watermark: saved settings (#4616) (AI-assisted, not separately native-reviewed)
+	Saved Settings	Configurações salvas
+	Save Settings	Salvar configurações
+	Delete Settings	Excluir configurações
+	[Custom]	[Personalizado]
+	Name a text watermark to save it	Dê um nome a uma marca d'água de texto para salvá-la
