@@ -8772,4 +8772,18 @@ fn sanitizing_a_signed_document_can_remove_or_flatten_its_signatures() {
     let d = s3.get(id3).unwrap();
     assert!(d.signatures.is_empty() && d.form.is_empty());
     assert!(page_texts(&s3, id3).iter().any(|t| t.contains("Digitally signed by")), "the signature's look is page content now");
+
+    // CodeRabbit on #4650: saved, then undone, the signed document saves as the signed file it
+    // was, not overlaid on the sanitized rewrite (which would break its byte ranges).
+    s.undo(id).unwrap();
+    s.apply(id, Edit::SanitizeSigned(crate::SanitizeSignatures::Remove)).unwrap();
+    let sanitized = s.save_bytes(id).unwrap();
+    s.mark_saved(id, sanitized, Some("/tmp/signed.pdf".into())).unwrap();
+    s.undo(id).unwrap();
+    assert!(s.get(id).unwrap().is_signed());
+    let back = s.save_bytes(id).unwrap();
+    assert_eq!(back.as_slice(), signed.as_slice(), "the signed file, byte for byte");
+    let mut s4 = Session::new();
+    let id4 = s4.open("back.pdf", None, back, None).unwrap();
+    assert!(s4.get(id4).unwrap().is_signed());
 }
