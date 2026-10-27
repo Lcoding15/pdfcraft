@@ -1395,6 +1395,7 @@ impl DocView {
         // Partial wheel motion belongs to the old place, and so does a find step's match.
         self.reset_coarse_state();
         self.find_hold = None;
+        self.goto_point = None;
         self.goto = Some((page, 0.0));
         self.current = page;
     }
