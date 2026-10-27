@@ -689,15 +689,21 @@ pub enum Signatures {
 
 /// [`sanitize_removing_signatures`] or [`sanitize_flattening_signatures`], as `how` says.
 pub fn sanitize_signed(doc: &mut Document, how: Signatures) -> Result<(Vec<(Hidden, usize)>, usize), RedactError> {
+    match how {
+        Signatures::Remove => sanitize_removing_signatures(doc),
+        Signatures::Flatten => sanitize_flattening_signatures(doc),
+    }
+}
+
+/// Refuse destructive signature sanitization when a dynamic XFA form cannot be safely
+/// represented by the static page content available to this build.
+fn reject_unsupported_xfa(doc: &Document) -> Result<(), RedactError> {
     if pdfcraft_xfa::xfa_shape(doc).is_some_and(|shape| !shape.strippable()) {
         return Err(RedactError::Edit(pdfcraft_edit::EditError::Invalid(
             "signed XFA form cannot be sanitized safely".to_owned(),
         )));
     }
-    match how {
-        Signatures::Remove => sanitize_removing_signatures(doc),
-        Signatures::Flatten => sanitize_flattening_signatures(doc),
-    }
+    Ok(())
 }
 
 /// Sanitize Document for a signed file, with its signatures removed (#4622): [`remove_signatures`],
@@ -705,6 +711,7 @@ pub fn sanitize_signed(doc: &mut Document, how: Signatures) -> Result<(Vec<(Hidd
 /// names and timestamps are hidden information too. Returns what [`sanitize`] removed and how
 /// many signature fields and widgets went. Signed or not, valid or not, every one goes.
 pub fn sanitize_removing_signatures(doc: &mut Document) -> Result<(Vec<(Hidden, usize)>, usize), RedactError> {
+    reject_unsupported_xfa(doc)?;
     let signatures = remove_signatures(doc)?;
     Ok((sanitize(doc)?, signatures))
 }
@@ -717,6 +724,7 @@ pub fn sanitize_removing_signatures(doc: &mut Document) -> Result<(Vec<(Hidden, 
 /// [`remove_signatures`]. Whatever the appearance itself shows (a name, a date) stays on the page.
 /// Returns what [`sanitize`] removed and how many signature fields were flattened.
 pub fn sanitize_flattening_signatures(doc: &mut Document) -> Result<(Vec<(Hidden, usize)>, usize), RedactError> {
+    reject_unsupported_xfa(doc)?;
     let mut flattened = 0usize;
     let mut keep = std::collections::HashSet::new();
     for f in pdfcraft_forms::fields(doc).into_iter().filter(|f| f.kind == pdfcraft_forms::FieldKind::Signature) {
