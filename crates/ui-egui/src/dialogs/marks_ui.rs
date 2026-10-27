@@ -247,7 +247,7 @@ impl MarksDraft {
             ui.label(tl!("Saved Settings"));
             let shown = self.shown_saved().and_then(|at| self.saved.get(at)).map_or_else(|| tl!("[Custom]").to_string(), |s| s.name.clone());
             let mut pick = None;
-            egui::ComboBox::from_id_salt("wm-saved").selected_text(shown).width(160.0).show_ui(ui, |ui| {
+            craft_ui::ComboBox::from_id_salt("wm-saved").selected_text(shown).width(160.0).show_ui(ui, |ui| {
                 for (at, s) in self.saved.iter().enumerate() {
                     if ui.selectable_label(self.shown_saved() == Some(at), &s.name).clicked() {
                         pick = Some(at);
