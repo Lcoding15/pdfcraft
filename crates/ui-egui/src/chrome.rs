@@ -534,7 +534,7 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     ui.add_space(8.0);
                     // In a narrow window the search field takes what the mode tabs leave
                     // (it elides its placeholder), rather than running over them.
-                    let width = (ui.available_width() - 8.0).clamp(90.0, 260.0);
+                    let width = (ui.available_width() - 8.0).clamp(88.0, 260.0);
                     if widgets::search_box(ui, tl!("Find tools and commands"), width).clicked() {
                         app.palette_open = true;
                     }
