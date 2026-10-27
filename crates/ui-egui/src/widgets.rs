@@ -240,7 +240,7 @@ pub fn checkbox<'a>(checked: &'a mut bool, atoms: impl egui::IntoAtoms<'a>) -> i
 /// Where a drag across checkboxes keeps the box it started on and the state it gives every box
 /// it goes over (#1662).
 fn drag_target_id() -> egui::Id {
-    egui::Id::new("checkbox-drag-target")
+    egui::Id::unique("checkbox-drag-target")
 }
 
 /// Drag across checkboxes (#1662). A press on a checkbox and a drag toggle it, and every other
@@ -1191,7 +1191,7 @@ mod drag_across_tests {
                         }
                     })
                     .state
-                    .offset
+                    .clamped_offset()
                     .y;
             });
             output.drop_without_applying_deltas();
@@ -1220,7 +1220,7 @@ mod drag_across_tests {
             let input = egui::RawInput { screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(400.0, 300.0))), events, ..Default::default() };
             let output = ctx.run_ui(input, |ui| {
                 let cell = Rect::from_min_size(Pos2::new(10.0, 10.0), vec2(150.0, 200.0));
-                let thumbnail = ui.interact(cell, ui.id().with("thumbnail"), Sense::click_and_drag());
+                let thumbnail = ui.interact(cell, ui.scope_id().with("thumbnail"), Sense::click_and_drag());
                 ui.put(Rect::from_min_size(cell.min + vec2(8.0, 8.0), egui::Vec2::splat(20.0)), checkbox_without_text(checked));
                 *dragged |= thumbnail.drag_started();
             });
