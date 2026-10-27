@@ -693,6 +693,35 @@ fn ctrl_tab_steps_through_the_tabs_in_order_and_wraps_around() {
     }
 }
 
+/// A direct command immediately after Ctrl is released must not inherit the previous frame's
+/// held modifier state; back-to-back commands each go to the tab shown before.
+#[test]
+fn direct_recent_tab_commands_reconcile_a_released_modifier() {
+    let mut h = harness();
+    for name in ["second.pdf", "third.pdf", "fourth.pdf"] {
+        h.state_mut().open_bytes(name, None, fixture(1)).unwrap();
+    }
+    h.state_mut().set_option("tab_cycle", "recent").unwrap();
+    h.run_steps(2);
+    let ids: Vec<_> = h.state().views.iter().map(|v| v.id).collect();
+    for tab in [0, 3] {
+        h.state_mut().active = Some(tab);
+        h.run_steps(2);
+    }
+    let ctrl = Modifiers::CTRL | Modifiers::COMMAND;
+    h.event(egui::Event::ModifiersChanged(ctrl));
+    h.event(egui::Event::Key { key: Key::Tab, pressed: true, modifiers: ctrl, repeat: false, physical_key: None });
+    h.event(egui::Event::Key { key: Key::Tab, pressed: false, modifiers: ctrl, repeat: false, physical_key: None });
+    h.run_steps(2);
+    assert_eq!(h.state().active_ids().map(|(_, id)| id), Some(ids[0]));
+    // Release Ctrl without advancing a frame, so the recent-tab cycle still remembers it as held.
+    h.event(egui::Event::ModifiersChanged(Modifiers::NONE));
+    h.state_mut().execute("view.next_tab");
+    assert_eq!(h.state().active_ids().map(|(_, id)| id), Some(ids[3]));
+    h.state_mut().execute("view.next_tab");
+    assert_eq!(h.state().active_ids().map(|(_, id)| id), Some(ids[0]));
+}
+
 /// With Preferences ▸ Next tab and Previous tab ▸ Most recently used first (#2063), Ctrl+Tab
 /// goes to the tab shown before, as Alt+Tab does. Held down, Ctrl keeps the order of the first
 /// press: Tab again goes on to the tab shown before that. Letting go makes the tab landed on the
