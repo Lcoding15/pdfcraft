@@ -689,6 +689,11 @@ pub enum Signatures {
 
 /// [`sanitize_removing_signatures`] or [`sanitize_flattening_signatures`], as `how` says.
 pub fn sanitize_signed(doc: &mut Document, how: Signatures) -> Result<(Vec<(Hidden, usize)>, usize), RedactError> {
+    if pdfcraft_xfa::xfa_shape(doc).is_some_and(|shape| !shape.strippable()) {
+        return Err(RedactError::Edit(pdfcraft_edit::EditError::Invalid(
+            "signed XFA form cannot be sanitized safely".to_owned(),
+        )));
+    }
     match how {
         Signatures::Remove => sanitize_removing_signatures(doc),
         Signatures::Flatten => sanitize_flattening_signatures(doc),
