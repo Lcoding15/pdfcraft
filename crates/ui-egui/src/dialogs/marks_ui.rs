@@ -257,7 +257,7 @@ impl MarksDraft {
                 self.use_saved_watermark(at);
             }
             let n = ui.label(tl!("Name"));
-            ui.add(crate::widgets::line(&mut self.saved_name).desired_width(140.0).id(egui::Id::new("wm-saved-name"))).labelled_by(n.id);
+            ui.add(crate::widgets::line(&mut self.saved_name).desired_width(140.0).id(egui::Id::unique("wm-saved-name"))).labelled_by(n.id);
             let can_save = clean_name(&self.saved_name).is_some() && !self.use_file;
             if ui
                 .add_enabled(can_save, egui::Button::new(tl!("Save Settings")))
