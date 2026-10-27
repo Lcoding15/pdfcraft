@@ -924,8 +924,7 @@ mod tests {
 
     #[test]
     fn saving_truncates_overlong_text_and_keeps_the_saved_setting_selected() {
-        let mut d = MarksDraft::default();
-        d.saved_name = "long text".into();
+        let mut d = MarksDraft { saved_name: "long text".into(), ..Default::default() };
         d.wm.text = "x".repeat(MAX_TEXT_CHARS + 10);
 
         assert_eq!(d.save_watermark(), Some(0));
