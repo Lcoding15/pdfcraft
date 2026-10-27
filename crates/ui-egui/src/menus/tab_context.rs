@@ -62,17 +62,20 @@ impl crate::PdfCraftApp {
         if self.pinned_tabs.is_empty() {
             return;
         }
-        let pinned: Vec<bool> = self.views.iter().map(|v| self.tab_pinned(v.id)).collect();
-        // Already in order: no pinned tab after an unpinned one.
-        if !pinned.windows(2).any(|w| matches!(w, [false, true])) {
-            return;
-        }
         let active = self.active_ids().map(|(_, id)| id);
         let mut views = std::mem::take(&mut self.views);
-        let mut flags = pinned.into_iter();
-        let (mut first, rest): (Vec<_>, Vec<_>) = views.drain(..).partition(|_| flags.next().unwrap_or(false));
-        first.extend(rest);
-        self.views = first;
+        // Stable sorting keeps unpinned tabs in their existing order, while pinned tabs follow
+        // the user's saved pin order. This also handles a pinned file opened from the command line
+        // after the other pinned files were restored.
+        views.sort_by_key(|v| {
+            self.session
+                .get(v.id)
+                .and_then(|d| d.path.as_deref())
+                .map(pin_key)
+                .and_then(|path| self.pinned_tabs.iter().position(|p| p == &path))
+                .map_or((1usize, 0usize), |index| (0, index))
+        });
+        self.views = views;
         if let Some(id) = active {
             self.active = self.views.iter().position(|v| v.id == id);
         }
