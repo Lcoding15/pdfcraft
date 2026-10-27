@@ -699,9 +699,7 @@ pub fn sanitize_signed(doc: &mut Document, how: Signatures) -> Result<(Vec<(Hidd
 /// represented by the static page content available to this build.
 fn reject_unsupported_xfa(doc: &Document) -> Result<(), RedactError> {
     if pdfcraft_xfa::xfa_shape(doc).is_some_and(|shape| !shape.strippable()) {
-        return Err(RedactError::Edit(pdfcraft_edit::EditError::Invalid(
-            "signed XFA form cannot be sanitized safely".to_owned(),
-        )));
+        return Err(RedactError::Edit(pdfcraft_edit::EditError::Invalid("signed XFA form cannot be sanitized safely".to_owned())));
     }
     Ok(())
 }
