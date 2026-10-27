@@ -856,11 +856,16 @@ pub(crate) fn image_input(
     // the group is not the group, so a double-click on a menu item over it must not ungroup it, and
     // a press anywhere else ends the count.
     let press = ui.input(|i| i.pointer.primary_pressed().then(|| (i.time, i.pointer.interact_pos())));
-    if press.is_some() && !resp.contains_pointer() {
+    // contains_pointer alone is not enough: an overlay can be hit-tested above this page while
+    // its bounds still contain the pointer. Only count a press delivered to this page's layer.
+    let press_on_page = press
+        .and_then(|(_, p)| p)
+        .is_some_and(|p| resp.contains_pointer() && ui.ctx().layer_id_at(p) == Some(resp.layer_id));
+    if press.is_some() && !press_on_page {
         view.group_press = None;
     }
     if allow_interaction
-        && resp.contains_pointer()
+        && press_on_page
         && let Some((now, Some(p))) = press
         && let Some(hit) = boxes.iter().enumerate().rposition(|(i, b)| b.is_positive() && b.contains(p) && image_contains(i, p))
         && images.get(hit).is_some_and(|image| image.is_form)
