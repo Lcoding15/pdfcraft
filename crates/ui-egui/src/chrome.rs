@@ -522,7 +522,12 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     for (id, icon, template) in [("edit.redo", "redo-2", tl!("Redo ({key})")), ("edit.undo", "undo-2", tl!("Undo ({key})"))] {
                         let enabled = pdfcraft_engine::commands::command(id).is_some_and(|c| app.command_enabled(c));
                         let tip = crate::commands::command_tip(ui.ctx(), template, id);
-                        if ui.add_enabled_ui(enabled, |ui| icons::button(ui, icon, 32.0, false, &tip)).inner.clicked() {
+                        let response = ui.add_enabled_ui(enabled, |ui| icons::button(ui, icon, 32.0, false, &tip)).inner;
+                        let clicked = response.clicked();
+                        if !enabled {
+                            response.on_disabled_hover_text(&tip);
+                        }
+                        if clicked {
                             app.run_command(id);
                         }
                     }
