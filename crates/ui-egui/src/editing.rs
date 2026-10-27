@@ -788,11 +788,12 @@ impl PdfCraftApp {
         if !self.commit_typing_in(id) || !self.flatten_fill_sign_for_save(id) {
             return false;
         }
+        let recovered = self.recovered_paths.contains(&id);
         let Some((name, full)) = self.session.get(id).map(|d| {
-            // Save As to another file is a clean copy, without the earlier revisions that still
-            // hold deleted pages or replaced text (#2165). A signed document stays incremental so
-            // its signatures keep covering the file.
-            let full = target == SaveTarget::As
+            // Save As to another file and a recovered document are clean copies, without earlier
+            // revisions that may retain deleted pages or replaced text (#2165, #3923). A signed
+            // document stays incremental so its signatures keep covering the file.
+            let full = (target == SaveTarget::As || recovered)
                 && !d.path.as_deref().is_some_and(|p| crate::same_file(p, dest))
                 && d.read_only_reason.is_none()
                 && !d.is_signed();
