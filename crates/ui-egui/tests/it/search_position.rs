@@ -225,6 +225,7 @@ fn a_step_during_a_wheel_zoom_keeps_the_match_on_screen() {
             delta: egui::vec2(0.0, dy),
             phase: egui::TouchPhase::Move,
             modifiers: egui::Modifiers::COMMAND,
+            source: egui::MouseWheelSource::Unknown,
         });
         h.run_steps(2);
         let before = h.state().views[0].zoom;
