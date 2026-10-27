@@ -33,8 +33,13 @@ pub(crate) fn pinned_from_json(v: &serde_json::Value) -> Vec<String> {
         if out.len() >= MAX_PINNED {
             break;
         }
-        if !path.is_empty() && !out.iter().any(|p| p == path) {
-            out.push(path.to_string());
+        if !path.is_empty() {
+            // Normalize on restore just as when pinning an open document, so a
+            // relative persisted path can still be matched and unpinned.
+            let path = pin_key(path);
+            if !out.iter().any(|p| p == &path) {
+                out.push(path);
+            }
         }
     }
     out
@@ -248,7 +253,12 @@ mod tests {
     #[test]
     fn pinned_tabs_are_read_leniently_and_capped() {
         let v = serde_json::json!(["/a.pdf", 7, null, "", "/a.pdf", { "path": "/x.pdf" }, "/b.pdf"]);
-        assert_eq!(pinned_from_json(&v), ["/a.pdf", "/b.pdf"]);
+        assert_eq!(pinned_from_json(&v), [pin_key("/a.pdf"), pin_key("/b.pdf")]);
+        assert_eq!(
+            pinned_from_json(&serde_json::json!(["report.pdf"])),
+            [pin_key("report.pdf")],
+            "relative entries use the same normalization as an opened document"
+        );
         assert!(pinned_from_json(&serde_json::json!("/a.pdf")).is_empty(), "not a list");
         assert!(pinned_from_json(&serde_json::Value::Null).is_empty());
         let many: Vec<String> = (0..1000).map(|i| format!("/f{i}.pdf")).collect();
