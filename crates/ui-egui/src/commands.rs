@@ -104,6 +104,16 @@ impl PdfCraftApp {
     /// Last-resort guard (AGENTS.md §4): a command that panics is reported and the app, with its
     /// open documents, keeps running. Edits are applied to a copy, so the document is unchanged.
     pub fn execute(&mut self, id: &str) -> bool {
+        self.execute_with_tab_cycle_hold(id, false)
+    }
+
+    /// Run a command with the modifier state of the frame that dispatched it. Direct command
+    /// calls are one-shot cycles; shortcuts can keep the recent-tab order fixed while Ctrl is held.
+    fn execute_with_tab_cycle_hold(&mut self, id: &str, ctrl_held: bool) -> bool {
+        if self.tab_cycle == crate::tab_cycle::TabCycle::Recent && matches!(id, "view.next_tab" | "view.previous_tab") {
+            let (shown, open) = (self.front_tab(), self.tab_keys());
+            self.recent_tabs.note(shown, &open, ctrl_held);
+        }
         match pdfcraft_engine::guard(|| self.execute_unguarded(id)) {
             Ok(done) => done,
             Err(m) => {
@@ -800,7 +810,7 @@ impl PdfCraftApp {
             // `file.close` command.
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         } else {
-            self.execute(id);
+            self.execute_with_tab_cycle_hold(id, ctx.input(|i| i.modifiers.ctrl));
         }
     }
 }
