@@ -1001,6 +1001,14 @@ fn pinned_tabs_lead_the_strip_and_open_at_every_start() {
     assert!(!later.reopen_last_session);
     later.reopen_last_files(&[]);
     assert_eq!(names(&later), ["c.pdf", "b.pdf"]);
+    // A command-line pinned file is opened by the caller after startup restoration. Once it is
+    // open, the next tab-order pass restores the saved pin order rather than leaving it last.
+    let mut command_line = PdfCraftApp::new();
+    command_line.restore(&settings);
+    command_line.reopen_last_files(&[files[2].clone()]);
+    command_line.open_path(&files[2]);
+    command_line.pinned_tabs_first();
+    assert_eq!(names(&command_line), ["c.pdf", "b.pdf"]);
     // A pinned file opened from the command line isn't opened twice; a missing one stays pinned.
     std::fs::remove_file(&files[1]).unwrap();
     let mut again = PdfCraftApp::new();
