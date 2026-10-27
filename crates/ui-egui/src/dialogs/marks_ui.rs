@@ -193,9 +193,10 @@ impl MarksDraft {
         if self.wm.font_size <= 0.0 {
             self.wm.font_size = 72.0;
         }
-        // The text is kept as long as a saved setting loads it back, so it comes back the same.
-        let text = self.wm.text.chars().take(MAX_TEXT_CHARS).collect();
-        let s = SavedWatermark { name: name.clone(), wm: Watermark { text, source: None, ..self.wm.clone() }, fit: self.fit };
+        // Keep the visible draft identical to the value persisted in the saved setting.
+        // Otherwise an overlong draft would immediately appear as [Custom] after saving.
+        self.wm.text = self.wm.text.chars().take(MAX_TEXT_CHARS).collect();
+        let s = SavedWatermark { name: name.clone(), wm: Watermark { source: None, ..self.wm.clone() }, fit: self.fit };
         let at = match self.saved.iter().position(|o| o.name == name) {
             Some(at) => {
                 *self.saved.get_mut(at)? = s;
@@ -919,6 +920,21 @@ mod tests {
         assert_eq!(saved_from_json(&saved_to_json(&long.saved)), long.saved, "the same after a reload");
         let unset = saved_from_json(&serde_json::json!([{ "name": "u", "font_size": 0 }, { "name": "v" }]));
         assert_eq!(unset.iter().map(|s| s.wm.font_size).collect::<Vec<_>>(), [72.0, 72.0]);
+    }
+
+    #[test]
+    fn saving_truncates_overlong_text_and_keeps_the_saved_setting_selected() {
+        let mut d = MarksDraft::default();
+        d.saved_name = "long text".into();
+        d.wm.text = "x".repeat(MAX_TEXT_CHARS + 10);
+
+        assert_eq!(d.save_watermark(), Some(0));
+        assert_eq!(d.wm.text.chars().count(), MAX_TEXT_CHARS);
+        assert_eq!(d.saved[0].wm.text, d.wm.text);
+        assert_eq!(d.shown_saved(), Some(0));
+
+        d.delete_saved_watermark();
+        assert!(d.saved.is_empty());
     }
 
     #[test]
