@@ -272,6 +272,47 @@ impl Overrides {
     }
 }
 
+/// `ui.set shortcut <command>=<keys>` (CodeRabbit on #4646): the control channel's way to change a
+/// binding, by the same rules as the Keyboard shortcuts dialog. `<keys>` is written as the
+/// settings write it (`cmd+shift+K`, see [`token`]); `none` takes the command's key away,
+/// `default` gives it back, and `all=default` puts every command back. A key another command had
+/// is taken from it, as in the dialog. Refused, with the reason, are unknown commands, Copy (the
+/// system's own key), keys that aren't a shortcut, and the keys the dialog refuses.
+pub(crate) fn set_from_control(app: &mut crate::PdfCraftApp, value: &str) -> Result<(), String> {
+    let (id, to) = value.split_once('=').ok_or("shortcut must be <command id>=<keys>, <command id>=none, <command id>=default or all=default")?;
+    let mut overrides = (*app.shortcuts).clone();
+    if id == "all" {
+        if to != "default" {
+            return Err("shortcut: all only takes default (all=default)".into());
+        }
+        overrides.reset_all();
+    } else {
+        let spec = pdfcraft_engine::commands::command(id).ok_or_else(|| format!("shortcut: unknown command {id} (ui.commands lists them)"))?;
+        if FIXED.contains(&spec.id) {
+            return Err(format!("shortcut: {id} keeps the system's own key and can't be changed"));
+        }
+        match to {
+            "none" => overrides.remove(id),
+            "default" => {
+                overrides.reset(id);
+            }
+            keys => {
+                let s =
+                    parse(keys).ok_or_else(|| format!("shortcut: {keys} is not a shortcut; write it as cmd+shift+ctrl+K, each modifier optional"))?;
+                let key = key_of(s.key).ok_or_else(|| format!("shortcut: {keys} names no key"))?;
+                let mut m = Modifiers::NONE;
+                m.command = s.command;
+                m.shift = s.shift;
+                m.ctrl = s.mac_ctrl;
+                from_press(key, m, s.mac_ctrl).map_err(|r| format!("shortcut: {}", r.message()))?;
+                overrides.assign(id, s);
+            }
+        }
+    }
+    app.shortcuts = Arc::new(overrides);
+    Ok(())
+}
+
 /// Whether `s` could have come from a key press ([`from_press`] says yes).
 fn allowed(s: Shortcut) -> bool {
     let Some(key) = key_of(s.key) else { return false };
