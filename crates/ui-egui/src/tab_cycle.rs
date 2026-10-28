@@ -20,6 +20,7 @@ pub enum TabCycle {
 }
 
 impl TabCycle {
+    /// Every order, as Preferences lists them.
     pub const ALL: [Self; 2] = [Self::Tabs, Self::Recent];
 
     /// The name in the settings file and for `set tab_cycle` (the control channel).
@@ -30,6 +31,8 @@ impl TabCycle {
         }
     }
 
+    /// The order a settings value or `set tab_cycle` names ([`Self::token`], any case); `None`
+    /// for anything else, which leaves the setting as it was.
     pub fn parse(value: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|c| c.token().eq_ignore_ascii_case(value))
     }
