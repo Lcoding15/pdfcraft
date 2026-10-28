@@ -2809,3 +2809,5 @@ theme	Appearance	ظاهر
 	Duplicate pages with new field names	تکثیر صفحه‌ها با نام‌های تازه برای فیلدها
 	Duplicate pages — 1 field renamed	تکثیر صفحه‌ها — ۱ فیلد تغییر نام یافت
 	Duplicate pages — fields renamed	تکثیر صفحه‌ها — فیلد‌ها تغییر نام یافتند
+	{batch} — 1 field renamed	{batch} — ۱ فیلد تغییر نام یافت
+	{batch} — fields renamed	{batch} — فیلد‌ها تغییر نام یافتند

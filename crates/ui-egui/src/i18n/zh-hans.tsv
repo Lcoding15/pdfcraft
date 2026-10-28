@@ -2526,3 +2526,5 @@ animation effects	Off	关
 	Duplicate pages with new field names	以新的字段名称重复页面
 	Duplicate pages — 1 field renamed	重复页面 — 已重命名 1 个字段
 	Duplicate pages — fields renamed	重复页面 — 已重命名字段
+	{batch} — 1 field renamed	{batch} — 已重命名 1 个字段
+	{batch} — fields renamed	{batch} — 已重命名字段

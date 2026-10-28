@@ -2838,3 +2838,5 @@ certificate	Version	الإصدار
 	Duplicate pages with new field names	تكرار الصفحات بأسماء حقول جديدة
 	Duplicate pages — 1 field renamed	تكرار الصفحات — تمت إعادة تسمية حقل واحد
 	Duplicate pages — fields renamed	تكرار الصفحات — تمت إعادة تسمية حقول
+	{batch} — 1 field renamed	{batch} — تمت إعادة تسمية حقل واحد
+	{batch} — fields renamed	{batch} — تمت إعادة تسمية حقول

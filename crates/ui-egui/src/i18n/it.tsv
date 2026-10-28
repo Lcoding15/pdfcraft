@@ -2794,3 +2794,5 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Duplicate pages with new field names	Duplica pagine con nuovi nomi di campo
 	Duplicate pages — 1 field renamed	Duplica pagine — 1 campo rinominato
 	Duplicate pages — fields renamed	Duplica pagine — campi rinominati
+	{batch} — 1 field renamed	{batch} — 1 campo rinominato
+	{batch} — fields renamed	{batch} — campi rinominati

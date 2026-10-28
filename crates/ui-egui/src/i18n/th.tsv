@@ -2725,3 +2725,5 @@ theme	Appearance	ลักษณะที่ปรากฏ
 	Duplicate pages with new field names	ทำสำเนาหน้าด้วยชื่อช่องใหม่
 	Duplicate pages — 1 field renamed	ทำสำเนาหน้า — เปลี่ยนชื่อ 1 ช่อง
 	Duplicate pages — fields renamed	ทำสำเนาหน้า — มีการเปลี่ยนชื่อช่อง
+	{batch} — 1 field renamed	{batch} — เปลี่ยนชื่อ 1 ช่อง
+	{batch} — fields renamed	{batch} — มีการเปลี่ยนชื่อช่อง

@@ -2823,3 +2823,5 @@ theme	Appearance	Aspect
 	Duplicate pages with new field names	Duplicare pagini cu nume noi de câmpuri
 	Duplicate pages — 1 field renamed	Duplicare pagini: 1 câmp redenumit
 	Duplicate pages — fields renamed	Duplicare pagini: câmpuri redenumite
+	{batch} — 1 field renamed	{batch}: 1 câmp redenumit
+	{batch} — fields renamed	{batch}: câmpuri redenumite

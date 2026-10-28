@@ -2799,3 +2799,5 @@ theme	Appearance	모양
 	Duplicate pages with new field names	새 필드 이름으로 페이지 복제
 	Duplicate pages — 1 field renamed	페이지 복제 — 필드 1개 이름 변경됨
 	Duplicate pages — fields renamed	페이지 복제 — 필드 이름 변경됨
+	{batch} — 1 field renamed	{batch} — 필드 1개 이름 변경됨
+	{batch} — fields renamed	{batch} — 필드 이름 변경됨

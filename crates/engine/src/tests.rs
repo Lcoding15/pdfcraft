@@ -1205,6 +1205,8 @@ fn a_batch_of_renaming_duplications_reports_every_rename() {
         "both renames are noted: {:?}",
         doc.repair_log()
     );
+    // The undo step keeps the batch's name and says fields were renamed (CodeRabbit on #4557).
+    assert_eq!(doc.can_undo(), Some("Duplicate twice — fields renamed"));
 }
 
 /// CodeRabbit on #4557: the note names the step that renamed, not every kind of step in the

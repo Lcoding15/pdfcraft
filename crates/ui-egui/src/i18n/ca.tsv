@@ -2823,3 +2823,5 @@ theme	Appearance	Aspecte
 	Duplicate pages with new field names	Duplica pàgines amb noms de camp nous
 	Duplicate pages — 1 field renamed	Duplica pàgines — 1 camp s'ha reanomenat
 	Duplicate pages — fields renamed	Duplica pàgines — camps reanomenats
+	{batch} — 1 field renamed	{batch} — 1 camp s'ha reanomenat
+	{batch} — fields renamed	{batch} — camps reanomenats

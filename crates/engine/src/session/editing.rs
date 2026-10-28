@@ -105,6 +105,9 @@ impl Session {
             ),
             (Edit::DuplicatePages { .. }, 1) => Label::of("Duplicate pages — 1 field renamed"),
             (Edit::DuplicatePages { .. }, _) => Label::of("Duplicate pages — fields renamed"),
+            // A batch keeps its own name and says that fields were renamed (CodeRabbit on #4557).
+            (Edit::Batch { label: name, .. }, 1) => Label::with("{batch} — 1 field renamed", name.as_str()),
+            (Edit::Batch { label: name, .. }, _) => Label::with("{batch} — fields renamed", name.as_str()),
             _ => edit.label(),
         };
         // An XFA form's scripts answer the change: exit and validate scripts of the field, then
