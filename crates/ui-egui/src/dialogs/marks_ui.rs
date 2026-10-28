@@ -115,6 +115,8 @@ pub struct SavedWatermark {
 }
 
 impl SavedWatermark {
+    /// The setting as it is kept in the app settings: its name, the watermark's text and look,
+    /// and whether it fits the page. No page range and no picture source (see [`Self::from_json`]).
     fn to_json(&self) -> serde_json::Value {
         let w = &self.wm;
         serde_json::json!({
