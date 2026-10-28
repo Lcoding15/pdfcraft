@@ -70,7 +70,12 @@ fn needles() -> usize {
 
 /// The app with the fixture open and a search for the needle that has found every match.
 fn harness() -> Harness<'static, PdfCraftApp> {
-    let mut h = Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_eframe(|_cc| {
+    harness_dt(1.0 / 4.0)
+}
+
+/// [`harness`] with frames `dt` seconds apart.
+fn harness_dt(dt: f32) -> Harness<'static, PdfCraftApp> {
+    let mut h = Harness::builder().with_size(egui::vec2(1200.0, 800.0)).with_step_dt(dt).build_eframe(|_cc| {
         let mut app = PdfCraftApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("search.pdf", None, fixture()).expect("opens");
@@ -235,6 +240,45 @@ fn a_step_during_a_wheel_zoom_keeps_the_match_on_screen() {
         settle(&mut h);
         assert!((h.state().views[0].zoom - before).abs() > 1e-3, "step {i}: the zoom was still easing when the step came");
         assert_match_shown(&h, &format!("step {i} during a wheel zoom ({dy})"));
+    }
+}
+
+/// CodeRabbit on #4139: egui spreads a ⌘/Ctrl-wheel notch over about a quarter of a second. A
+/// step to a match while that zoom is easing, the pointer then leaving the page view for a few
+/// frames and coming back before the zoom has ended: the rest of the zoom still keeps the match in
+/// the middle, rather than anchoring on the pointer once it is back. Frames a 60th of a second
+/// apart, as on screen; the default quarter-second frames end the zoom before the pointer leaves.
+#[test]
+fn a_step_during_a_wheel_zoom_keeps_the_match_when_the_pointer_leaves_and_returns() {
+    for (dy, out) in [(120.0, 2), (240.0, 4), (480.0, 3)] {
+        let mut h = harness_dt(1.0 / 60.0);
+        h.state_mut().set_option("animation_effects", "on").unwrap();
+        h.state_mut().views[0].set_zoom(3.0);
+        settle(&mut h);
+        let w = h.state().views[0].viewport_rect();
+        // The pointer well away from the middle, where the zoom would otherwise be anchored.
+        let corner = w.min + egui::vec2(80.0, 80.0);
+        h.hover_at(corner);
+        h.run_steps(1);
+        h.event(egui::Event::MouseWheel {
+            unit: egui::MouseWheelUnit::Point,
+            delta: egui::vec2(0.0, dy),
+            phase: egui::TouchPhase::Move,
+            modifiers: egui::Modifiers::COMMAND,
+            source: egui::MouseWheelSource::Unknown,
+        });
+        h.run_steps(2);
+        h.state_mut().views[0].find_step(true);
+        h.run_steps(1);
+        let during = h.state().views[0].zoom;
+        // Off the page view (over the toolbar above it) while the zoom eases, then back.
+        h.hover_at(egui::pos2(corner.x, (w.min.y - 20.0).max(1.0)));
+        h.run_steps(out);
+        h.hover_at(corner);
+        h.run_steps(30);
+        settle(&mut h);
+        assert!((h.state().views[0].zoom - during).abs() > 1e-3, "{dy}: the zoom was still easing when the pointer left");
+        assert_match_shown(&h, &format!("pointer out for {out} frames during a wheel zoom ({dy})"));
     }
 }
 

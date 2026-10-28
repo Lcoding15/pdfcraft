@@ -2722,8 +2722,11 @@ fn pinch_zoom(ui: &egui::Ui, view: &mut DocView, zoom_delta: f32, navigation_rec
             Some(p) => view.zoom_at(z, p),
             None => view.set_zoom(z),
         }
-    } else if view.goto_point.is_none() {
+    } else if view.goto_point.is_none() && zoom_delta == 1.0 {
         // The find step has been laid out and no zoom is easing on: zoom at the pointer again.
+        // egui spreads a ⌘/Ctrl-wheel notch over about a quarter of a second; while the pointer
+        // is off the page view that zoom waits, and the hold must outlast it, or the rest of it
+        // anchors on the pointer once it is back and the match drifts off the middle.
         view.find_hold = None;
     }
 }
