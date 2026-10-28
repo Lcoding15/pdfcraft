@@ -295,3 +295,155 @@ pub(super) fn register_fields(dst: &mut Document, fields: &[ObjRef]) -> Result<(
     }
     Ok(())
 }
+
+/// At most this many field nodes are read when matching copied widgets to their originals.
+const MAX_FIELD_NODES: usize = 100_000;
+
+/// Make the widgets on `page`, copied from a page of the same document, more widgets of the
+/// fields they were copied from, so that each field stays one field, with one value shown on
+/// every page (#1429: a page template spawned without renaming). A copied field is matched to
+/// the field of the same fully-qualified name among the objects that existed before the copy
+/// (`before`, by object number); the copies of the matched fields leave the form.
+pub(crate) fn share_fields_with_originals(dst: &mut Document, page: ObjRef, before: &HashSet<u32>) -> Result<(), OrganizeError> {
+    let catalog = dst.root().ok_or(OrganizeError::NoPageTree)?;
+    let form_ref = dst.get(catalog).as_dict().and_then(|c| c.reference(b"AcroForm"));
+    let form = dst.get(catalog).as_dict().and_then(|c| c.get(b"AcroForm").cloned()).map(|f| dst.resolve(&f).as_ref().clone());
+    let mut list: Vec<Object> = form
+        .as_ref()
+        .and_then(Object::as_dict)
+        .and_then(|f| f.get(b"Fields"))
+        .map(|l| dst.resolve(l).as_ref().clone())
+        .and_then(|l| l.as_array().cloned())
+        .unwrap_or_default();
+    // The fields that were there before the copy, by fully-qualified name.
+    let mut originals: HashMap<String, ObjRef> = HashMap::new();
+    let mut seen = HashSet::new();
+    let mut pending: Vec<(ObjRef, String, u8)> =
+        list.iter().filter_map(Object::as_ref).filter(|r| before.contains(&r.num)).map(|r| (r, String::new(), 0)).collect();
+    while let Some((node, prefix, depth)) = pending.pop() {
+        if depth > 32 || seen.len() >= MAX_FIELD_NODES || !seen.insert(node) {
+            continue;
+        }
+        let Some(d) = dst.get(node).as_dict().cloned() else { continue };
+        let name = match d.get(b"T").and_then(|t| dst.resolve(t).as_string().map(|s| s.to_text())) {
+            Some(t) => qualified_optional(&prefix, &t),
+            None => prefix.clone(),
+        };
+        if d.contains(b"T") {
+            originals.entry(name.clone()).or_insert(node);
+        }
+        for kid in d.get(b"Kids").map(|k| dst.resolve(k).as_ref().clone()).and_then(|k| k.as_array().cloned()).unwrap_or_default() {
+            if let Some(kid) = kid.as_ref().filter(|k| before.contains(&k.num)) {
+                pending.push((kid, name.clone(), depth.saturating_add(1)));
+            }
+        }
+    }
+    let annots = dst.get(page).as_dict().and_then(|d| d.get(b"Annots").cloned()).map(|a| dst.resolve(&a).as_ref().clone());
+    let widgets: Vec<ObjRef> = annots
+        .as_ref()
+        .and_then(Object::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(Object::as_ref)
+        .filter(|w| dst.get(*w).as_dict().is_some_and(|d| d.name(b"Subtype") == Some(b"Widget")))
+        .collect();
+    let (mut shared, mut kept): (HashSet<ObjRef>, HashSet<ObjRef>) = (HashSet::new(), HashSet::new());
+    for widget in widgets {
+        let Some(d) = dst.get(widget).as_dict().cloned() else { continue };
+        // The copied field holding the widget: the widget itself when it is its own field.
+        let field = if d.contains(b"T") { Some(widget) } else { d.reference(b"Parent") };
+        let Some((name, top)) = field.and_then(|f| name_and_top(dst, f)) else { continue };
+        let Some(&original) = originals.get(&name) else {
+            kept.insert(top);
+            continue;
+        };
+        // An original that is its own widget becomes a field with that widget as its child.
+        let original = if dst.get(original).as_dict().is_some_and(|o| o.name(b"Subtype") == Some(b"Widget")) {
+            let mut slot = [original];
+            split_own_field(dst, &mut slot, original);
+            let [parent] = slot;
+            replace_kid(dst, &mut list, original, parent)?;
+            originals.insert(name, parent);
+            parent
+        } else {
+            original
+        };
+        let (_, mut child) = if d.contains(b"T") { field_and_widget(dst, &d) } else { (Dict::new(), d) };
+        child.set(b"Parent".to_vec(), Object::Ref(original));
+        dst.set(widget, Object::Dict(child));
+        add_kid(dst, original, widget)?;
+        shared.insert(top);
+    }
+    list.retain(|f| f.as_ref().is_none_or(|r| !shared.contains(&r) || kept.contains(&r)));
+    match (form_ref, form) {
+        (Some(r), _) => dst.update_dict(r, |f| f.set(b"Fields".to_vec(), Object::Array(list)))?,
+        (None, Some(_)) => dst.update_dict(catalog, |c| {
+            if let Some(Object::Dict(f)) = c.get(b"AcroForm").cloned() {
+                let mut f = f;
+                f.set(b"Fields".to_vec(), Object::Array(list));
+                c.set(b"AcroForm".to_vec(), Object::Dict(f));
+            }
+        })?,
+        (None, None) => {}
+    }
+    Ok(())
+}
+
+/// The fully-qualified name of field `node` and its top-level field, climbing `/Parent` at most
+/// 32 levels and never through a node twice.
+fn name_and_top(doc: &Document, node: ObjRef) -> Option<(String, ObjRef)> {
+    let mut parts = Vec::new();
+    let mut seen = HashSet::new();
+    let mut at = node;
+    for _ in 0..32 {
+        if !seen.insert(at) {
+            return None;
+        }
+        let d = doc.get(at).as_dict()?.clone();
+        if let Some(t) = d.get(b"T").and_then(|t| doc.resolve(t).as_string().map(|s| s.to_text())) {
+            parts.push(t);
+        }
+        match d.reference(b"Parent") {
+            Some(parent) => at = parent,
+            None => {
+                parts.reverse();
+                return Some((parts.join("."), at));
+            }
+        }
+    }
+    None
+}
+
+/// Put `new` where `old` was: among its parent field's `/Kids`, or among the form's top-level
+/// `fields` when it has no parent.
+fn replace_kid(dst: &mut Document, fields: &mut [Object], old: ObjRef, new: ObjRef) -> Result<(), OrganizeError> {
+    let swap = |kids: &mut Vec<Object>| {
+        for k in kids.iter_mut() {
+            if k.as_ref() == Some(old) {
+                *k = Object::Ref(new);
+            }
+        }
+    };
+    match dst.get(new).as_dict().and_then(|d| d.reference(b"Parent")) {
+        Some(parent) => match dst.get(parent).as_dict().and_then(|p| p.get(b"Kids").cloned()) {
+            Some(Object::Ref(list)) => {
+                let mut kids = dst.get(list).as_array().cloned().unwrap_or_default();
+                swap(&mut kids);
+                dst.set(list, Object::Array(kids));
+            }
+            _ => dst.update_dict(parent, |p| {
+                let mut kids = p.get(b"Kids").and_then(|k| k.as_array()).cloned().unwrap_or_default();
+                swap(&mut kids);
+                p.set(b"Kids".to_vec(), Object::Array(kids));
+            })?,
+        },
+        None => {
+            for f in fields.iter_mut() {
+                if f.as_ref() == Some(old) {
+                    *f = Object::Ref(new);
+                }
+            }
+        }
+    }
+    Ok(())
+}
