@@ -256,8 +256,25 @@ impl RecoveryStore {
         }
     }
 
+    ///
+    /// Only a regular file is read, and no more than it held when it was opened: anyone who can
+    /// write the recovery folder can put a FIFO there, which would hold the read forever, or a
+    /// link to a device such as `/dev/zero`, which never ends (#3923). Snapshots have no size
+    /// limit of their own, as autosave writes whatever the document holds.
     pub fn read(&self, key: &str) -> std::io::Result<Vec<u8>> {
-        std::fs::read(self.dir.join(format!("{key}.pdf")))
+        use std::io::Read;
+        let path = self.dir.join(format!("{key}.pdf"));
+        let meta = std::fs::metadata(&path)?;
+        if !meta.is_file() {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "the recovery snapshot is not a regular file"));
+        }
+        let len = meta.len();
+        let mut bytes = Vec::new();
+        File::open(&path)?.take(len.saturating_add(1)).read_to_end(&mut bytes)?;
+        if bytes.len() as u64 > len {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "the recovery snapshot grew while it was read"));
+        }
+        Ok(bytes)
     }
 
     /// Remove every entry (clean quit, or "Discard all"), and metadata left without a snapshot.
@@ -511,6 +528,31 @@ mod idle_tests {
         // Headless timer test: acknowledge texture uploads without a GPU backend.
         out.textures_delta.clear();
         out.viewport_output[&egui::ViewportId::ROOT].repaint_delay
+    }
+
+    /// #3923 (review on #4327): a snapshot that is not a regular file is refused before it is
+    /// opened. A FIFO in the recovery folder would otherwise hold the read, and the recovery with
+    /// it, until something wrote to it.
+    #[cfg(unix)]
+    #[test]
+    fn a_snapshot_that_is_not_a_regular_file_is_refused_at_once() {
+        let dir = TestDir::new();
+        let store = RecoveryStore::new(dir.path());
+        let fifo = dir.path().join("planted.pdf");
+        match std::process::Command::new("mkfifo").arg(&fifo).status() {
+            Ok(s) if s.success() => {}
+            _ => return, // No mkfifo here: nothing to plant.
+        }
+        let (tx, rx) = std::sync::mpsc::channel();
+        let reader = store.clone();
+        std::thread::spawn(move || {
+            let _ = tx.send(reader.read("planted").map(|b| b.len()));
+        });
+        let read = rx.recv_timeout(Duration::from_secs(5)).expect("the read returned instead of waiting on the FIFO");
+        assert_eq!(read.map_err(|e| e.kind()), Err(std::io::ErrorKind::InvalidInput));
+        // A directory under the name is refused the same way.
+        std::fs::create_dir(dir.path().join("folder.pdf")).unwrap();
+        assert_eq!(store.read("folder").map_err(|e| e.kind()), Err(std::io::ErrorKind::InvalidInput));
     }
 
     /// Check that an idle dirty document schedules a bounded write and autosaves without input, then stops
