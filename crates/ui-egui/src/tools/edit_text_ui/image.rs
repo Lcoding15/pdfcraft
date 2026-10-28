@@ -641,6 +641,7 @@ fn image_menu(
     ui.push_id("image-menu", |ui| image_menu_items(ui, page, hit, images, view, action));
 }
 
+/// The items of [`image_menu`], inside its own id scope.
 fn image_menu_items(
     ui: &mut egui::Ui,
     page: usize,

@@ -38,10 +38,12 @@ const CATEGORIES: [&[u8]; 7] = [b"ExtGState", b"ColorSpace", b"Pattern", b"Shadi
 /// abbreviations an inline image may use).
 const DEVICE_SPACES: [&[u8]; 8] = [b"DeviceGray", b"DeviceRGB", b"DeviceCMYK", b"Pattern", b"G", b"RGB", b"CMYK", b"I"];
 
+/// The refusal Ungroup gives, with `message` saying why.
 fn invalid(message: &str) -> EditError {
     EditError::Invalid(message.into())
 }
 
+/// The dictionary `o` is or refers to; `None` when it is missing or not a dictionary.
 fn resolved_dict(doc: &Document, o: Option<&Object>) -> Option<Dict> {
     o.map(|o| doc.resolve(o)).and_then(|o| o.as_dict().cloned())
 }
@@ -277,11 +279,14 @@ fn renamed_content(data: &[u8], ops: &[Op], renames: &Renames) -> Vec<u8> {
     Pieces::join(&[data]).splice(edits).into_iter().next().unwrap_or_default()
 }
 
+/// The numbers of the array `o` is or refers to (a `/Matrix` or `/BBox`); `None` when it is
+/// missing, not an array, or holds anything but numbers.
 fn numbers(doc: &Document, o: Option<&Object>) -> Option<Vec<f64>> {
     let o = doc.resolve(o?);
     o.as_array()?.iter().map(|x| doc.resolve(x).as_f64()).collect()
 }
 
+/// `v` written as a PDF number, as it goes into a content stream operand.
 fn number(v: f64) -> Vec<u8> {
     let mut out = Vec::new();
     pdfcraft_cos::serialize(&Object::Real(v), &mut out);
