@@ -81,6 +81,26 @@ impl crate::PdfCraftApp {
         }
     }
 
+    /// `ui.set tab-pinned true|false` (#2926): pins or unpins the active tab, as its context menu
+    /// does, for the control channel. Refused, with the reason, for a document without a file
+    /// (nothing to open at the next start) and past [`MAX_PINNED`].
+    pub(crate) fn set_tab_pinned(&mut self, value: &str) -> Result<(), String> {
+        let pin = match value {
+            "true" => true,
+            "false" => false,
+            _ => return Err("tab-pinned must be true or false".into()),
+        };
+        let (_, id) = self.active_ids().ok_or("tab-pinned: no document is open")?;
+        if self.session.get(id).and_then(|d| d.path.as_deref()).is_none() {
+            return Err("tab-pinned: only a document saved to a file can be pinned".into());
+        }
+        if pin && !self.tab_pinned(id) && self.pinned_tabs.len() >= MAX_PINNED {
+            return Err(format!("tab-pinned: at most {MAX_PINNED} tabs can be pinned; unpin one first"));
+        }
+        self.tab_action(if pin { Action::Pin(id) } else { Action::Unpin(id) });
+        Ok(())
+    }
+
     pub(crate) fn tab_action(&mut self, action: Action) {
         match action {
             Action::Close(id) => {
