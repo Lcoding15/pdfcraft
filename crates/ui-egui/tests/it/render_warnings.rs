@@ -9,7 +9,7 @@ use pdfcraft_ui_egui::PdfCraftApp;
 
 /// One 300 × 400 pt page painted in a DeviceN colour whose tint transform `program` (a
 /// calculator function taking the two tints) gives the DeviceRGB colour.
-fn devicen_pdf(program: &str) -> Vec<u8> {
+pub(crate) fn devicen_pdf(program: &str) -> Vec<u8> {
     let content = "/CS1 cs 0.5 0.5 scn 0 0 150 200 re f";
     format!(
         "%PDF-1.7\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n\
