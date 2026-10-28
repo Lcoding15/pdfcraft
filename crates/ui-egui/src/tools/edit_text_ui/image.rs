@@ -487,14 +487,17 @@ pub(crate) fn image_input(cx: &ImageCx<'_>, images: &[pdfcraft_engine::PageImage
     {
         let (now, (max_delay, max_dist)) =
             (ui.input(|i| i.time), ui.ctx().options(|o| (o.input_options.max_double_click_delay, o.input_options.max_click_dist)));
-        let second = view.group_press.is_some_and(|(t, at, index)| index == hit && now - t <= max_delay && at.distance(p) <= max_dist);
+        // The same picture of the same page: one page at a time, the next page's group can sit
+        // where this one was (CodeRabbit on #3222).
+        let second =
+            view.group_press.is_some_and(|(t, at, on, index)| on == page && index == hit && now - t <= max_delay && at.distance(p) <= max_dist);
         if second {
             view.group_press = None;
             view.image_selection = None;
             view.pending_edit = Some(Edit::EditPageImage { page, index: hit, change: pdfcraft_engine::ImageEdit::Ungroup });
             return true;
         }
-        view.group_press = Some((now, p, hit));
+        view.group_press = Some((now, p, page, hit));
     }
     // The selected image: frame, corner handles, dragging.
     if let Some(i) = selected.filter(|i| boxes.get(*i).is_some_and(|b| b.is_positive())) {
