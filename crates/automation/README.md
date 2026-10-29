@@ -67,7 +67,9 @@ both. The existing `query`, `count`, `matches` and rectangle semantics are uncha
 
 That lookahead means a search with exactly `limit` matches reads on to the end of the document to
 learn that no further match exists. `stop_at_limit: true` skips it: the search ends at the
-`limit`th match, later pages are not read and so cannot add warnings, and the answer carries
+`limit`th match. It reads one page first, then batches of 2, 4, … up to 128 pages, so nothing past
+the batch holding that match is read or can add warnings (a match on the first page reads only that
+page). The answer carries
 `stopped_at_limit`. When that is `true`, `complete` is `false` and `next` is only the position just
 past the last match, not a promise of another one; following it may return no matches and
 `complete: true`. When it is `false`, the search ran out of pages first and `complete` means what

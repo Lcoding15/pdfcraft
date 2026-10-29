@@ -183,7 +183,7 @@ fn stop_at_limit_ends_at_a_lone_match_without_reading_the_distant_tail() {
     assert_eq!((stopped["count"].clone(), stopped["warning_count"].clone()), (json!(1), json!(0)), "{stopped}");
     assert_eq!((stopped["complete"].clone(), stopped["stopped_at_limit"].clone()), (json!(false), json!(true)));
     assert_eq!(stopped["next"], json!({ "start_page": 1, "skip": 1 }));
-    assert!(requested.borrow().iter().all(|p| *p < FIND_FIRST_BATCH), "read {:?}", requested.borrow());
+    assert_eq!(*requested.borrow(), [0], "a match on the first page reads only that page");
 
     // Resuming finds nothing more and reaches the failing page, which it now reports.
     let mut resume = args.clone();

@@ -248,7 +248,9 @@ impl Automation {
         let mut stopped = false;
         let mut warnings = Vec::new();
         let mut warning_count = 0usize;
-        let (mut first, mut batch) = (start, FIND_FIRST_BATCH);
+        // A search that stops at its limit starts with one page, so a match on it reads nothing
+        // more; the batches still double for a match further in.
+        let (mut first, mut batch) = (start, if stop_at_limit { 1 } else { FIND_FIRST_BATCH });
         'search: while first < n {
             let end = first.saturating_add(batch).min(n);
             let pages: Vec<usize> = (first..end).collect();
