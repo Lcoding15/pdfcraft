@@ -65,6 +65,14 @@ that reaches the end with warnings therefore has `complete: false` **without** `
 should follow `next` when present and separately inspect warnings. A capped search can return
 both. The existing `query`, `count`, `matches` and rectangle semantics are unchanged.
 
+That lookahead means a search with exactly `limit` matches reads on to the end of the document to
+learn that no further match exists. `stop_at_limit: true` skips it: the search ends at the
+`limit`th match, later pages are not read and so cannot add warnings, and the answer carries
+`stopped_at_limit`. When that is `true`, `complete` is `false` and `next` is only the position just
+past the last match, not a promise of another one; following it may return no matches and
+`complete: true`. When it is `false`, the search ran out of pages first and `complete` means what
+it always does.
+
 `text_extract`, comment placement and redaction keep strict all-requested-pages-must-succeed
 semantics; they never silently act on partial text.
 
