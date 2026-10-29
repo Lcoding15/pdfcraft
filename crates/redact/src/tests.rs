@@ -3100,7 +3100,8 @@ fn a_reply_on_another_page_to_a_removed_popup_goes_too() {
 }
 
 /// A signed field (with an appearance naming the signer), a signature widget the form doesn't
-/// list, a text field, `/Perms`, `/DSS` and `/SigFlags`.
+/// list, a text field, `/Perms`, `/DSS` (with a certificate, hex-encoded so only its decoded
+/// bytes say [`CERT`]) and `/SigFlags`.
 fn signed_form() -> Document {
     let ap = |text: &str| {
         stream(
@@ -3109,7 +3110,7 @@ fn signed_form() -> Document {
         )
     };
     pdf(vec![
-        b"<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 7 0 R >> /DSS << /Certs [] >> >>".to_vec(),
+        b"<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 7 0 R >> /DSS << /Certs [15 0 R] >> >>".to_vec(),
         b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>".to_vec(),
         b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] /Annots [5 0 R 8 0 R 10 0 R] /Contents 12 0 R /Resources << /Font << /F1 11 0 R >> >> >>".to_vec(),
         b"<< /Fields [5 0 R 10 0 R] /SigFlags 3 /DA (/Helv 0 Tf 0 g) >>".to_vec(),
@@ -3125,7 +3126,24 @@ fn signed_form() -> Document {
         stream("", b"BT /F1 10 Tf 10 280 Td (Page) Tj ET"),
         ap("KEEP"),
         b"<< /Parent 9 0 R >>".to_vec(),
+        stream("/Filter /ASCIIHexDecode", CERT.iter().map(|b| format!("{b:02X}")).collect::<String>().as_bytes()),
     ])
+}
+
+/// What [`signed_form`]'s certificate decodes to.
+const CERT: &[u8] = b"CERT-DER-SIGNER-0001";
+
+/// Whether `bytes`, reopened, still hold `needle` in an object or a decoded stream (#4622: the
+/// check reads what a reader would, not just the raw bytes).
+fn decoded_anywhere(bytes: &[u8], needle: &[u8]) -> bool {
+    let has = |b: &[u8]| b.windows(needle.len()).any(|w| w == needle);
+    let doc = Document::open(Arc::new(bytes.to_vec())).unwrap();
+    has(bytes)
+        || doc.scan_objects().any(|(_, o)| match &*o {
+            Object::Stream(s) => s.decoded().is_ok_and(|d| has(&d)),
+            Object::String(t) => has(&t.bytes),
+            _ => false,
+        })
 }
 
 #[test]
@@ -3152,6 +3170,7 @@ fn sanitizing_with_signatures_removed_leaves_no_signature_and_no_signer_on_the_p
     for gone in [b"SIGNER".as_slice(), b"Ada Signer", b"/ByteRange", b"/SigFlags", b"Unlisted"] {
         assert!(!bytes.windows(gone.len()).any(|w| w == gone), "{} is still in the file", String::from_utf8_lossy(gone));
     }
+    assert!(!decoded_anywhere(&bytes, CERT), "the /DSS certificate is gone");
 
     // On its own, it keeps the other fields and their form.
     let mut doc = signed_form();
@@ -3236,6 +3255,25 @@ fn a_signature_widget_too_deep_to_tell_is_refused() {
     }
 }
 
+/// #4622: a signed XFA form that taking the XFA out would leave blank (a dynamic form never laid
+/// out) is refused for both choices, and the document is left exactly as it was.
+#[test]
+fn a_signed_dynamic_xfa_form_is_refused_and_left_untouched() {
+    use crate::sanitize::{Signatures, sanitize_signed};
+
+    let mut doc = Document::open(Arc::new(pdfcraft_xfa::fixtures::shell(&pdfcraft_xfa::fixtures::template(1)))).unwrap();
+    assert!(pdfcraft_xfa::xfa_shape(&doc).is_some_and(|shape| !shape.strippable()));
+    let cat = doc.root().unwrap();
+    doc.update_dict(cat, |d| d.set(b"Perms".to_vec(), Object::Dict(Dict::new()))).unwrap();
+    let before = write_full(&doc, &SaveOptions::default()).unwrap();
+    for how in [Signatures::Remove, Signatures::Flatten] {
+        let mut tried = doc.clone();
+        let out = sanitize_signed(&mut tried, how);
+        assert!(matches!(out, Err(RedactError::Edit(_))), "{how:?}: {out:?}");
+        assert_eq!(write_full(&tried, &SaveOptions::default()).unwrap(), before, "{how:?} changed the document");
+    }
+}
+
 #[test]
 fn a_signature_widget_whose_parents_loop_is_left_alone() {
     // 5 → 6 → 5: no /FT anywhere, so not a signature widget; the walk ends.
@@ -3272,4 +3310,5 @@ fn sanitizing_with_signatures_flattened_keeps_their_look_and_drops_the_signature
     for gone in [b"Ada Signer".as_slice(), b"/ByteRange", b"/SigFlags", b"Unlisted", b"/Sig "] {
         assert!(!bytes.windows(gone.len()).any(|w| w == gone), "{} is still in the file", String::from_utf8_lossy(gone));
     }
+    assert!(!decoded_anywhere(&bytes, CERT), "the /DSS certificate is gone");
 }
