@@ -115,3 +115,19 @@ fn a_spawning_loop_stops_at_its_page_budget() {
     assert_eq!((budget, overlays), (1, 0), "said once; the overlays came after the budget was spent: {:?}", o.console);
     assert_eq!(fields(&s, id), ["Extra", "Name"], "every unrenamed copy shares Extra");
 }
+
+/// Run as another field's script (`js_run`'s `field`), a script may not change the pages
+/// either: only a push button may (CodeRabbit on #5332). A name no field has is no button.
+#[test]
+fn a_script_run_for_a_field_that_is_no_button_may_not_change_the_pages() {
+    let (mut s, id) = open();
+    for target in ["Name", "Nope"] {
+        let o =
+            s.run_javascript(id, "getTemplate('More').hidden = false; this.spawnPageFromTemplate('More', 1, false, false);", Some(target)).unwrap();
+        assert_eq!(pages(&s, id), 1, "{target}");
+        let said = o.console.iter().filter(|l| l.contains("only a button may change the pages")).count();
+        assert_eq!(said, 1, "{target}: said once: {:?}", o.console);
+        assert!(o.requests.is_empty(), "{target}: nothing is left for the viewer: {:?}", o.requests);
+    }
+    assert_eq!(s.get(id).unwrap().can_undo(), None, "nothing was changed");
+}

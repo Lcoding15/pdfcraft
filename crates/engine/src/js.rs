@@ -322,11 +322,15 @@ impl Session {
             })
             .collect();
         o.requests.retain(|r| !matches!(r, Request::Reset(_)));
-        // Pages from templates go in the same undo step, after the field changes (#1429).
+        // Pages from templates go in the same undo step, after the field changes (#1429). Only a
+        // push button may change the pages, as for field scripts (`JsOutput`); a target that
+        // names another field, or no field, is refused that (CodeRabbit on #5332).
+        let button = target.is_none_or(|t| fields.iter().any(|f| f.name == t && f.kind == pdfcraft_forms::FieldKind::PushButton));
         let mut pages = Vec::new();
-        let (mut over, mut overlaid) = (false, None);
+        let (mut over, mut overlaid, mut not_button) = (false, None, false);
         for r in std::mem::take(&mut o.requests) {
             match r {
+                Request::SpawnTemplate { .. } | Request::SetTemplateHidden { .. } if !button => not_button = true,
                 Request::SpawnTemplate { .. } | Request::SetTemplateHidden { .. } if pages.len() >= MAX_TEMPLATE_PAGES => over = true,
                 Request::SpawnTemplate { overlay: true, name, .. } => overlaid = overlaid.or(Some(name)),
                 Request::SpawnTemplate { name, page, rename, overlay: false } => pages.push(Edit::SpawnTemplate { name, at: page, rename }),
@@ -337,6 +341,9 @@ impl Session {
         // Said once, however many overlays the script asked for.
         if let Some(name) = overlaid {
             o.console.push(format!("Laying template {name} over an existing page isn't supported yet; ask for a new page (bOverlay false)"));
+        }
+        if not_button {
+            o.console.push("A field script asked to add or show a page from a template; only a button may change the pages".into());
         }
         if over {
             o.console.push(format!("A script may add or show at most {MAX_TEMPLATE_PAGES} pages from templates at a time; the rest were left out"));
