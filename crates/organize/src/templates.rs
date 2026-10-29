@@ -70,9 +70,10 @@ pub fn spawn_template(doc: &mut Document, name: &str, at: usize, rename: bool) -
 /// visible page, or hiding a hidden one, changes nothing.
 pub fn set_template_hidden(doc: &mut Document, name: &str, hidden: bool) -> Result<(), OrganizeError> {
     let (from, to): (&[u8], &[u8]) = if hidden { (b"Pages", b"Templates") } else { (b"Templates", b"Pages") };
-    let mut source = entries(doc, from);
+    // Rewritten from every entry, not the listing's first [`MAX_NAMES`], so no name is lost.
+    let mut source = all_entries(doc, from);
     let Some(k) = source.iter().position(|(key, _)| text(key) == name) else {
-        return if entries(doc, to).iter().any(|(key, _)| text(key) == name) {
+        return if all_entries(doc, to).iter().any(|(key, _)| text(key) == name) {
             Ok(())
         } else {
             Err(OrganizeError::Invalid(format!("the document has no template named {name}")))
@@ -110,7 +111,7 @@ pub fn set_template_hidden(doc: &mut Document, name: &str, hidden: bool) -> Resu
         order.push((page, attributes));
     }
     rebuild(doc, &order)?;
-    let mut target = entries(doc, to);
+    let mut target = all_entries(doc, to);
     target.push((key, value));
     write_tree(doc, from, source)?;
     write_tree(doc, to, target)
@@ -187,12 +188,19 @@ fn top_field(doc: &Document, widget: ObjRef) -> Option<ObjRef> {
     None
 }
 
-/// The (key, value) pairs of the name dictionary's tree `key`, at most [`MAX_NAMES`].
+/// The (key, value) pairs of the name dictionary's tree `key`, at most [`MAX_NAMES`] (for listing).
 fn entries(doc: &Document, key: &[u8]) -> Vec<(Vec<u8>, Object)> {
+    let mut out = all_entries(doc, key);
+    out.truncate(MAX_NAMES);
+    out
+}
+
+/// Every (key, value) pair of the name dictionary's tree `key`, for rewriting it. The walk is
+/// bounded by the tree reader's depth limit and seen-set; the entries are already in memory.
+fn all_entries(doc: &Document, key: &[u8]) -> Vec<(Vec<u8>, Object)> {
     let Some(tree) = names(doc).and_then(|n| n.get(key).cloned()) else { return Vec::new() };
     let mut out = Vec::new();
     crate::import::name_tree_entries(doc, &tree, 0, &mut HashSet::new(), &mut out);
-    out.truncate(MAX_NAMES);
     out
 }
 

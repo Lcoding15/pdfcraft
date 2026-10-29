@@ -24,7 +24,12 @@ fn build(bodies: &[&str]) -> Document {
 /// One visible page and a hidden template, `More`, whose page holds the text field `Extra`
 /// (a field that is its own widget, as forms write it) and has no media box of its own.
 fn form() -> Document {
-    build(&[
+    build(&form_bodies())
+}
+
+/// The objects of [`form`], numbered from 1.
+fn form_bodies() -> [&'static str; 9] {
+    [
         "<< /Type /Catalog /Pages 2 0 R /Names << /Templates 6 0 R >> /AcroForm << /Fields [7 0 R] >> >>",
         "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 200 300] >>",
         "<< /Type /Page /Parent 2 0 R /Contents 4 0 R /Resources << /Font << /F1 9 0 R >> >> >>",
@@ -34,7 +39,7 @@ fn form() -> Document {
         "<< /FT /Tx /T (Extra) /V (x) /Subtype /Widget /Rect [20 100 180 120] /P 5 0 R >>",
         "<< /Length 41 >>\nstream\nBT /F1 12 Tf 20 20 Td (Template) Tj ET\nendstream",
         "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-    ])
+    ]
 }
 
 /// What each page says, through its content stream.
@@ -233,4 +238,25 @@ fn a_hidden_page_keeps_what_it_inherited() {
     let media = page.get(b"MediaBox").and_then(|m| m.as_array().cloned()).expect("its media box, inherited before");
     assert_eq!(media.len(), 4);
     assert_eq!(templates(&doc), [Template { name: "Cover".into(), hidden: true }]);
+}
+
+/// Showing or hiding a template rewrites both name trees from every entry, not from the first
+/// [`MAX_NAMES`] the listing reads, so a long `/Pages` tree loses no name.
+#[test]
+fn showing_and_hiding_keep_every_name_of_a_long_tree() {
+    let names: String = (0..MAX_NAMES + 10).map(|i| format!("(N{i:05}) 3 0 R ")).collect();
+    let pages_tree = format!("<< /Names [{names}] >>");
+    let mut bodies =
+        vec!["<< /Type /Catalog /Pages 2 0 R /Names << /Templates 6 0 R /Pages 10 0 R >> /AcroForm << /Fields [7 0 R] >> >>".to_string()];
+
+    bodies.extend(form_bodies().iter().skip(1).map(|b| b.to_string()));
+    bodies.push(pages_tree);
+    let mut doc = build(&bodies.iter().map(String::as_str).collect::<Vec<_>>());
+    let count = |doc: &Document, tree: &[u8]| all_entries(doc, tree).len();
+    assert_eq!(count(&doc, b"Pages"), MAX_NAMES + 10);
+    set_template_hidden(&mut doc, "More", false).unwrap();
+    assert_eq!((count(&doc, b"Pages"), count(&doc, b"Templates")), (MAX_NAMES + 11, 0));
+    set_template_hidden(&mut doc, "More", true).unwrap();
+    let doc = reopen(&doc);
+    assert_eq!((count(&doc, b"Pages"), count(&doc, b"Templates")), (MAX_NAMES + 10, 1));
 }
