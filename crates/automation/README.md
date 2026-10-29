@@ -51,7 +51,8 @@ do not keep an old PDF byte buffer alive.
 
 This bounds retained text-cache data, not total process memory: active extraction batches,
 renderers, document buffers and the requested output have separate lifetimes. Search still reads
-growing batches (8 to 128 pages), with one lookahead match to determine continuation.
+growing batches (8 to 128 pages), with one lookahead match to determine continuation, unless
+`stop_at_limit` is set (below), which starts at one page and looks no further than its limit.
 
 `text_find` keeps matches from readable pages when another reached page fails extraction. It
 returns `warnings` with 1-based `page`, `error` and `error_truncated`, plus `warning_count` and
