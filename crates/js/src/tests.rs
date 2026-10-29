@@ -2117,3 +2117,21 @@ fn spawn_pages_that_are_not_numbers_are_clamped() {
         assert_eq!(o.requests, [Request::SpawnTemplate { name: "More".into(), page, rename: true, overlay: false }], "{arg}");
     }
 }
+
+/// A template name longer than a console line is asked for whole, never clipped: a cut name
+/// could name another template.
+#[test]
+fn long_template_names_are_asked_for_whole() {
+    let long = "T".repeat(5000);
+    let doc = DocInfo { templates: vec![(long.clone(), true)], ..doc() };
+    let script = "var t = this.templates[0]; t.spawn(0, false, false); t.hidden = false;";
+    let o = run(script, &Event::field("Mouse Up", "agree", ""), &doc, &fields(), &[], Limits::default());
+    assert_eq!(o.error, None);
+    assert_eq!(
+        o.requests,
+        [
+            Request::SpawnTemplate { name: long.clone(), page: 0, rename: false, overlay: false },
+            Request::SetTemplateHidden { name: long, hidden: false },
+        ]
+    );
+}

@@ -63,8 +63,8 @@ impl Host {
             Request::LaunchUrl(u) => Request::LaunchUrl(xfa::clip(u)),
             Request::Submit(u) => Request::Submit(xfa::clip(u)),
             Request::Focus(n) => Request::Focus(xfa::clip(n)),
-            Request::SpawnTemplate { name, page, rename, overlay } => Request::SpawnTemplate { name: xfa::clip(name), page, rename, overlay },
-            Request::SetTemplateHidden { name, hidden } => Request::SetTemplateHidden { name: xfa::clip(name), hidden },
+            // Template names are looked up exactly, so they are never clipped: a cut name could
+            // name another template. Their whole length is charged below.
             other => other,
         };
         let bytes = match &r {
