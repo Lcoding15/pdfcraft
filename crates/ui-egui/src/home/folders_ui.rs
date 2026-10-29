@@ -327,6 +327,9 @@ pub(crate) fn section(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let mut fold = None;
     for folder in &app.pinned.folders {
         let name = folder_name(folder);
+        // Buttons name their folder; two pinned folders of the same name add where each is.
+        let shared = app.pinned.folders.iter().any(|f| f != folder && folder_name(f) == name);
+        let named = if shared { format!("{name} ({})", location(folder)) } else { name.clone() };
         let collapsed = app.pinned.collapsed.contains(folder);
         ui.add_space(6.0);
         ui.horizontal(|ui| {
@@ -337,7 +340,7 @@ pub(crate) fn section(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             };
             let resp = icons::button(ui, chevron, 22.0, false, tip);
             // Every folder has one: say which folder it folds.
-            let label = crate::i18n::fmt(label, &[("folder", &name)]);
+            let label = crate::i18n::fmt(label, &[("folder", &named)]);
             resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, &label));
             if resp.clicked() {
                 fold = Some(folder.clone());
@@ -357,7 +360,7 @@ pub(crate) fn section(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 let resp = widgets::ghost_button(ui, "x", tl!("Unpin"));
                 // Every folder has an Unpin button: say which one it is.
-                let label = crate::i18n::fmt(tl!("Unpin {folder}"), &[("folder", &name)]);
+                let label = crate::i18n::fmt(tl!("Unpin {folder}"), &[("folder", &named)]);
                 resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, &label));
                 if resp.clicked() {
                     unpin = Some(folder.clone());

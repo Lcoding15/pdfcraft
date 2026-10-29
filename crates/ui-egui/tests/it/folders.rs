@@ -179,6 +179,32 @@ fn a_pinned_folder_collapses_to_its_heading_and_stays_collapsed_after_a_restart(
     assert!(restarted.pinned.collapsed.is_empty(), "unpinning forgets the folded state");
 }
 
+/// Two pinned folders of the same name: their buttons say where each one is, so a screen reader
+/// can tell them apart.
+#[test]
+fn folders_of_the_same_name_have_buttons_that_tell_them_apart() {
+    let root = TempFolder::new("same-name");
+    let (a, b) = (root.0.join("work").join("Scans"), root.0.join("home").join("Scans"));
+    std::fs::create_dir_all(&a).unwrap();
+    std::fs::create_dir_all(&b).unwrap();
+    let (a, b) = (a.to_string_lossy().into_owned(), b.to_string_lossy().into_owned());
+    let pins = (a.clone(), b.clone());
+    let mut h = harness(move |app| {
+        app.pin_folder(&pins.0);
+        app.pin_folder(&pins.1);
+    });
+    h.run_steps(2);
+    for (folder, other) in [(&a, &b), (&b, &a)] {
+        let named = format!("Scans ({})", pdfcraft_ui_egui::folders_ui::location(folder));
+        assert_ne!(named, format!("Scans ({})", pdfcraft_ui_egui::folders_ui::location(other)));
+        h.get_by_label(&format!("Collapse {named}"));
+        h.get_by_label(&format!("Unpin {named}"));
+    }
+    h.get_by_label(&format!("Collapse Scans ({})", pdfcraft_ui_egui::folders_ui::location(&a))).click();
+    h.run_steps(2);
+    assert_eq!(h.state().pinned.collapsed, std::slice::from_ref(&a), "the button folds its own folder");
+}
+
 #[test]
 fn pinned_folders_survive_a_restart() {
     let dir = TempFolder::new("restart");
