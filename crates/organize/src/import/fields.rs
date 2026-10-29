@@ -215,6 +215,23 @@ pub(super) fn add_kid(dst: &mut Document, field: ObjRef, kid: ObjRef) -> Result<
     Ok(())
 }
 
+/// Take `kid` out of field `field`'s `/Kids` (direct or held in an array object of its own).
+fn remove_kid(dst: &mut Document, field: ObjRef, kid: ObjRef) -> Result<(), OrganizeError> {
+    match dst.get(field).as_dict().and_then(|f| f.get(b"Kids").cloned()) {
+        Some(Object::Ref(list)) => {
+            let mut kids = dst.get(list).as_array().cloned().unwrap_or_default();
+            kids.retain(|k| k.as_ref() != Some(kid));
+            dst.set(list, Object::Array(kids));
+        }
+        Some(Object::Array(mut kids)) => {
+            kids.retain(|k| k.as_ref() != Some(kid));
+            dst.update_dict(field, |f| f.set(b"Kids".to_vec(), Object::Array(kids)))?;
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
 /// PdfCraft patch (#1810): split a widget that doubles as its own field into a parent field
 /// holding the field keys (name, value, flags…) and a widget child holding the annotation keys
 /// (rectangle, appearance, page). The parent takes the widget's place among the top-level fields;
@@ -368,6 +385,10 @@ pub(crate) fn share_fields_with_originals(dst: &mut Document, page: ObjRef, befo
         } else {
             original
         };
+        // The copied field it leaves no longer lists it, so no widget has two parents.
+        if let Some(former) = d.reference(b"Parent") {
+            remove_kid(dst, former, widget)?;
+        }
         let (_, mut child) = if d.contains(b"T") { field_and_widget(dst, &d) } else { (Dict::new(), d) };
         child.set(b"Parent".to_vec(), Object::Ref(original));
         dst.set(widget, Object::Dict(child));

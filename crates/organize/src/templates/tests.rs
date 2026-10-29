@@ -276,3 +276,36 @@ fn renamed_copies_at_the_same_page_never_share_a_name() {
     assert_eq!(listed.len(), 3, "the template's field and one per copy: {listed:?}");
     assert_ne!(fields_on(&doc, 0), fields_on(&doc, 1));
 }
+
+/// Every field that lists a kid is that kid's `/Parent`: no widget has two parents.
+fn every_kid_names_its_parent(doc: &Document) {
+    for r in doc.object_numbers().into_iter().map(|n| ObjRef::new(n, 0)) {
+        let obj = doc.get(r);
+        let Some(d) = obj.as_dict() else { continue };
+        let kids = d.get(b"Kids").map(|k| doc.resolve(k).as_ref().clone());
+        for kid in kids.as_ref().and_then(Object::as_array).into_iter().flatten().filter_map(Object::as_ref) {
+            let parent = doc.get(kid).as_dict().and_then(|k| k.reference(b"Parent"));
+            assert!(parent.is_none_or(|p| p == r), "{kid:?} is listed by {r:?} but its parent is {parent:?}");
+        }
+    }
+}
+
+/// A copied group with one widget that joins the template's field and one that doesn't: the
+/// copied group no longer lists the widget that left it.
+#[test]
+fn a_widget_that_joins_its_original_leaves_the_copied_group() {
+    let mut doc = build(&[
+        "<< /Type /Catalog /Pages 2 0 R /Names << /Templates 6 0 R >> /AcroForm << /Fields [7 0 R] >> >>",
+        "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 200 300] >>",
+        "<< /Type /Page /Parent 2 0 R >>",
+        "<< /Length 0 >>\nstream\n\nendstream",
+        "<< /Type /Template /Contents 4 0 R /Annots [8 0 R 9 0 R] >>",
+        "<< /Names [(More) 5 0 R] >>",
+        "<< /FT /Tx /T (G) /Kids [8 0 R] >>",
+        "<< /T (a) /Parent 7 0 R /Subtype /Widget /Rect [20 100 180 120] /P 5 0 R >>",
+        "<< /T (b) /Parent 7 0 R /Subtype /Widget /Rect [20 140 180 160] /P 5 0 R >>",
+    ]);
+    spawn_template(&mut doc, "More", 1, false).unwrap();
+    every_kid_names_its_parent(&doc);
+    every_kid_names_its_parent(&reopen(&doc));
+}
