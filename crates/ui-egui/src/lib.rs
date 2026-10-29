@@ -334,6 +334,9 @@ pub struct PdfCraftApp {
     pub shortcuts: std::sync::Arc<custom_shortcuts::Overrides>,
     /// The command whose new shortcut the Keyboard shortcuts dialog is waiting for.
     pub shortcut_capture: Option<&'static str>,
+    /// Keys pressed for a command that another command runs on: the dialog asks whether to take
+    /// them (Reassign) or leave both as they are (Cancel).
+    pub shortcut_conflict: Option<(&'static str, pdfcraft_engine::commands::Shortcut)>,
     /// How files were last shown, most recent first (see `last_view`).
     pub last_views: Vec<last_view::LastView>,
     /// The files open when PdfCraft last closed, read from the settings for

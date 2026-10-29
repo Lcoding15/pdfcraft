@@ -2832,6 +2832,8 @@ theme	Appearance	Aspect
 	This key moves around the interface on its own. Add Ctrl to use it.	Această tastă navighează singură prin interfață. Adăugați Ctrl pentru a o folosi.
 	This key is used for “{what}” and can't be changed.	Această tastă este folosită pentru „{what}” și nu poate fi modificată.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} a fost luată de la „{other}”, care acum nu mai are comandă rapidă.
+	{key} is already used by “{other}”.	{key} este deja folosită de „{other}”.
+	Reassign	Reatribuie
 	Select tool	Instrument de selecție
 	Hand tool	Instrument mână
 	Scroll the page	Derulează pagina

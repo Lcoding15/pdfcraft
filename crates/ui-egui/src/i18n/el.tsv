@@ -2577,6 +2577,8 @@ animation effects	Off	Ανενεργά
 	This key moves around the interface on its own. Add Ctrl to use it.	Αυτό το πλήκτρο μετακινείται μόνο του στη διεπαφή. Προσθέστε Ctrl για να το χρησιμοποιήσετε.
 	This key is used for “{what}” and can't be changed.	Αυτό το πλήκτρο χρησιμοποιείται για «{what}» και δεν μπορεί να αλλάξει.
 	{key} was taken from “{other}”, which now has no shortcut.	Το {key} πάρθηκε από «{other}», που τώρα δεν έχει συντόμευση.
+	{key} is already used by “{other}”.	Το {key} χρησιμοποιείται ήδη από «{other}».
+	Reassign	Εκ νέου ανάθεση
 	Select tool	Εργαλείο επιλογής
 	Hand tool	Εργαλείο χεριού
 	Scroll the page	Κύλιση σελίδας

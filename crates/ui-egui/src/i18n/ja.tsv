@@ -2571,6 +2571,8 @@ animation effects	Off	オフ
 	This key moves around the interface on its own. Add Ctrl to use it.	このキーは単独でインターフェイス内を移動します。使うには Ctrl を加えてください。
 	This key is used for “{what}” and can't be changed.	このキーは「{what}」に使われていて変更できません。
 	{key} was taken from “{other}”, which now has no shortcut.	{key} を「{other}」から移しました。そちらにはショートカットがなくなりました。
+	{key} is already used by “{other}”.	{key} は「{other}」で使われています。
+	Reassign	割り当て直す
 	Select tool	選択ツール
 	Hand tool	手のひらツール
 	Scroll the page	ページをスクロール

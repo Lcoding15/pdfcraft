@@ -1,8 +1,9 @@
 //! Customizable keyboard shortcuts (#4635): Help ▸ Keyboard shortcuts lets each registered
 //! command take another key, lose its key, or get one it lacks, and puts them back. The changes
 //! are kept in the settings and published to the context each frame, so the menus, the palette,
-//! tooltips and the key handling all read the same binding. The keys the document view handles
-//! itself (the arrows, zoom, copy…) stay as they are and can't be taken.
+//! tooltips and the key handling all read the same binding. Keys another command runs on are
+//! only taken once the user says Reassign. The keys the document view handles itself (the
+//! arrows, zoom, copy…) stay as they are and can't be taken.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -276,8 +277,9 @@ impl Overrides {
 /// binding, by the same rules as the Keyboard shortcuts dialog. `<keys>` is written as the
 /// settings write it (`cmd+shift+K`, see [`token`]); `none` takes the command's key away,
 /// `default` gives it back, and `all=default` puts every command back. A key another command had
-/// is taken from it, as in the dialog. Refused, with the reason, are unknown commands, Copy (the
-/// system's own key), keys that aren't a shortcut, and the keys the dialog refuses.
+/// is taken from it, as the dialog's Reassign does (there is no one to ask here). Refused, with
+/// the reason, are unknown commands, Copy (the system's own key), keys that aren't a shortcut,
+/// and the keys the dialog refuses.
 pub(crate) fn set_from_control(app: &mut crate::PdfCraftApp, value: &str) -> Result<(), String> {
     let (id, to) = value.split_once('=').ok_or("shortcut must be <command id>=<keys>, <command id>=none, <command id>=default or all=default")?;
     let mut overrides = (*app.shortcuts).clone();
@@ -357,19 +359,52 @@ pub(crate) fn capture(ctx: &egui::Context, app: &mut crate::PdfCraftApp) {
     }
     match from_press(key, modifiers, mac) {
         Ok(s) => {
-            let taken = Arc::make_mut(&mut app.shortcuts).assign(id, s);
             app.shortcut_capture = None;
-            if let Some(other) = taken {
-                let label = crate::commands::shortcut_label(ctx, s);
-                let other = tl!(other.label).trim_end_matches('…').to_string();
-                app.notify(crate::i18n::fmt(
-                    tl!("{key} was taken from “{other}”, which now has no shortcut."),
-                    &[("key", &label), ("other", &other)],
-                ));
+            // Keys another command runs on are only taken once the dialog's Reassign says so.
+            if app.shortcuts.holder(s).is_some_and(|c| c.id != id) {
+                app.shortcut_conflict = Some((id, s));
+            } else {
+                Arc::make_mut(&mut app.shortcuts).assign(id, s);
             }
         }
         Err(why) => app.notify(why.message()),
     }
+}
+
+/// Give the pending conflict's keys to its command, taking them from the one that had them, and
+/// say so.
+fn reassign(ctx: &egui::Context, app: &mut crate::PdfCraftApp) {
+    let Some((id, s)) = app.shortcut_conflict.take() else { return };
+    if let Some(other) = Arc::make_mut(&mut app.shortcuts).assign(id, s) {
+        let label = crate::commands::shortcut_label(ctx, s);
+        let other = tl!(other.label).trim_end_matches('…').to_string();
+        app.notify(crate::i18n::fmt(tl!("{key} was taken from “{other}”, which now has no shortcut."), &[("key", &label), ("other", &other)]));
+    }
+}
+
+/// The question a pressed key that another command runs on asks (#4635): Reassign takes it from
+/// that command, Cancel keeps both as they were. Nothing is shown once the conflict is gone (the
+/// other command lost the key meanwhile, say).
+fn conflict_ui(ui: &mut egui::Ui, app: &mut crate::PdfCraftApp, t: &crate::theme::Tokens) {
+    let Some((id, s)) = app.shortcut_conflict else { return };
+    let Some(other) = app.shortcuts.holder(s).filter(|c| c.id != id) else {
+        app.shortcut_conflict = None;
+        return;
+    };
+    let key = crate::commands::shortcut_label(ui.ctx(), s);
+    let other = tl!(other.label).trim_end_matches('…').to_string();
+    ui.horizontal_wrapped(|ui| {
+        ui.label(
+            egui::RichText::new(crate::i18n::fmt(tl!("{key} is already used by “{other}”."), &[("key", &key), ("other", &other)])).color(t.accent),
+        );
+        if ui.add(egui::Button::new(tl!("Reassign"))).clicked() {
+            reassign(ui.ctx(), app);
+        }
+        if ui.add(egui::Button::new(tl!("Cancel"))).clicked() {
+            app.shortcut_conflict = None;
+        }
+    });
+    ui.add_space(4.0);
 }
 
 /// The registered commands' rows of Help ▸ Keyboard shortcuts: each with its key, Change, and
@@ -386,12 +421,14 @@ pub(crate) fn rows_ui(ui: &mut egui::Ui, app: &mut crate::PdfCraftApp, t: &crate
             if ui.add_enabled(any, egui::Button::new(tl!("Reset all shortcuts"))).clicked() {
                 Arc::make_mut(&mut app.shortcuts).reset_all();
                 app.shortcut_capture = None;
+                app.shortcut_conflict = None;
             }
         });
     });
     ui.data_mut(|d| d.insert_temp(search_id, search.clone()));
     let q = search.trim().to_lowercase();
     ui.add_space(4.0);
+    conflict_ui(ui, app, t);
     egui::Grid::new("keys-registered").num_columns(3).spacing([16.0, 4.0]).show(ui, |ui| {
         for spec in COMMANDS {
             let key = app.shortcuts.get(spec);
@@ -416,6 +453,7 @@ pub(crate) fn rows_ui(ui: &mut egui::Ui, app: &mut crate::PdfCraftApp, t: &crate
                     .on_hover_text(crate::i18n::fmt(tl!("Choose new keys for {command}"), &[("command", &label)]));
                 if change.clicked() {
                     app.shortcut_capture = if waiting { None } else { Some(spec.id) };
+                    app.shortcut_conflict = None;
                 }
                 if key.is_some() && ui.add(egui::Button::new(tl!("Remove"))).clicked() {
                     Arc::make_mut(&mut app.shortcuts).remove(spec.id);

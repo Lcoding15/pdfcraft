@@ -2841,6 +2841,8 @@ theme	Appearance	Teema
 	This key moves around the interface on its own. Add Ctrl to use it.	Tämä näppäin liikkuu käyttöliittymässä yksinään. Lisää Ctrl käyttääksesi sitä.
 	This key is used for “{what}” and can't be changed.	Tätä näppäintä käytetään toimintoon ”{what}”, eikä sitä voi muuttaa.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} otettiin komennolta ”{other}”, jolla ei nyt ole pikanäppäintä.
+	{key} is already used by “{other}”.	{key} on jo komennon ”{other}” käytössä.
+	Reassign	Siirrä
 	Select tool	Valintatyökalu
 	Hand tool	Käsityökalu
 	Scroll the page	Vieritä sivua

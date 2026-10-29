@@ -2572,6 +2572,8 @@ animation effects	Off	Aus
 	This key moves around the interface on its own. Add Ctrl to use it.	Diese Taste bewegt sich allein durch die Oberfläche. Füge Strg hinzu, um sie zu verwenden.
 	This key is used for “{what}” and can't be changed.	Diese Taste wird für „{what}“ verwendet und kann nicht geändert werden.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} wurde von „{other}“ übernommen, das jetzt kein Tastenkürzel mehr hat.
+	{key} is already used by “{other}”.	{key} wird bereits von „{other}“ verwendet.
+	Reassign	Neu zuweisen
 	Select tool	Auswahlwerkzeug
 	Hand tool	Hand-Werkzeug
 	Scroll the page	Seite scrollen

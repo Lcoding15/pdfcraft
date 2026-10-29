@@ -2734,6 +2734,8 @@ theme	Appearance	ลักษณะที่ปรากฏ
 	This key moves around the interface on its own. Add Ctrl to use it.	ปุ่มนี้เคลื่อนที่ในอินเทอร์เฟซได้ด้วยตัวเอง เพิ่ม Ctrl เพื่อใช้งาน
 	This key is used for “{what}” and can't be changed.	ปุ่มนี้ใช้สำหรับ “{what}” และเปลี่ยนไม่ได้
 	{key} was taken from “{other}”, which now has no shortcut.	นำ {key} มาจาก “{other}” ซึ่งตอนนี้ไม่มีทางลัดแล้ว
+	{key} is already used by “{other}”.	{key} ถูกใช้โดย “{other}” อยู่แล้ว
+	Reassign	กำหนดใหม่
 	Select tool	เครื่องมือเลือก
 	Hand tool	เครื่องมือมือ
 	Scroll the page	เลื่อนหน้า

@@ -89,6 +89,7 @@ impl PdfCraftApp {
             restore_last_view: true,
             shortcuts: Default::default(),
             shortcut_capture: None,
+            shortcut_conflict: None,
             last_views: Vec::new(),
             last_session: Default::default(),
             quit_session: None,
@@ -527,6 +528,7 @@ impl eframe::App for PdfCraftApp {
         custom_shortcuts::publish(&ctx, &self.shortcuts);
         if self.dialog != Some(Dialog::Shortcuts) {
             self.shortcut_capture = None;
+            self.shortcut_conflict = None;
         }
         // Fonts registered via set_fonts only take effect next frame; named families would panic now.
         if !self.fonts_ready {

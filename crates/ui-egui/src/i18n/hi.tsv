@@ -2808,6 +2808,8 @@ theme	Appearance	स्वरूप
 	This key moves around the interface on its own. Add Ctrl to use it.	यह कुंजी अपने आप इंटरफ़ेस में घूमती है। इसका उपयोग करने के लिए Ctrl जोड़ें।
 	This key is used for “{what}” and can't be changed.	यह कुंजी “{what}” के लिए उपयोग होती है और बदली नहीं जा सकती।
 	{key} was taken from “{other}”, which now has no shortcut.	{key} को “{other}” से लिया गया, जिसका अब कोई शॉर्टकट नहीं है।
+	{key} is already used by “{other}”.	{key} पहले से “{other}” के लिए उपयोग में है।
+	Reassign	फिर से असाइन करें
 	Select tool	चयन उपकरण
 	Hand tool	हाथ उपकरण
 	Scroll the page	पृष्ठ स्क्रॉल करें

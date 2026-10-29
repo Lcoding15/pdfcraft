@@ -2809,6 +2809,8 @@ theme	Appearance	Tampilan
 	This key moves around the interface on its own. Add Ctrl to use it.	Tombol ini bergerak di antarmuka dengan sendirinya. Tambahkan Ctrl untuk menggunakannya.
 	This key is used for “{what}” and can't be changed.	Tombol ini digunakan untuk “{what}” dan tidak dapat diubah.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} diambil dari “{other}”, yang sekarang tidak punya pintasan.
+	{key} is already used by “{other}”.	{key} sudah dipakai oleh “{other}”.
+	Reassign	Tetapkan ulang
 	Select tool	Alat pilih
 	Hand tool	Alat tangan
 	Scroll the page	Gulir halaman

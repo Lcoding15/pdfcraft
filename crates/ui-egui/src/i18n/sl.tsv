@@ -2576,6 +2576,8 @@ animation effects	Off	Izklopljeni
 	This key moves around the interface on its own. Add Ctrl to use it.	Ta tipka se sama premika po vmesniku. Dodajte Ctrl, da jo uporabite.
 	This key is used for “{what}” and can't be changed.	Ta tipka se uporablja za »{what}« in je ni mogoče spremeniti.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} je bila vzeta ukazu »{other}«, ki zdaj nima bližnjice.
+	{key} is already used by “{other}”.	{key} že uporablja ukaz »{other}«.
+	Reassign	Dodeli znova
 	Select tool	Orodje za izbiro
 	Hand tool	Orodje roka
 	Scroll the page	Pomikaj stran

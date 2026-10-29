@@ -2803,6 +2803,8 @@ certificate	SHA-256 digest	Impronta SHA-256
 	This key moves around the interface on its own. Add Ctrl to use it.	Questo tasto da solo si sposta nell'interfaccia. Aggiungi Ctrl per usarlo.
 	This key is used for “{what}” and can't be changed.	Questo tasto è usato per «{what}» e non può essere modificato.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} è stato tolto a «{other}», che ora non ha scorciatoie.
+	{key} is already used by “{other}”.	{key} è già usato da «{other}».
+	Reassign	Riassegna
 	Select tool	Strumento di selezione
 	Hand tool	Strumento mano
 	Scroll the page	Scorri la pagina

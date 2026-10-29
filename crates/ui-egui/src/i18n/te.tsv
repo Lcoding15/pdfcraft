@@ -2480,6 +2480,8 @@ animation effects	Off	ఆఫ్
 	This key moves around the interface on its own. Add Ctrl to use it.	ఈ కీ తనంతట తానే ఇంటర్‌ఫేస్‌లో కదులుతుంది. దీనిని ఉపయోగించడానికి Ctrl జోడించండి.
 	This key is used for “{what}” and can't be changed.	ఈ కీ “{what}” కోసం ఉపయోగించబడుతుంది, దీనిని మార్చలేరు.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} “{other}” నుండి తీసుకోబడింది, దానికి ఇప్పుడు షార్ట్‌కట్ లేదు.
+	{key} is already used by “{other}”.	{key} ఇప్పటికే “{other}” కోసం వాడుకలో ఉంది.
+	Reassign	మళ్లీ కేటాయించు
 	Select tool	ఎంపిక సాధనం
 	Hand tool	చేతి సాధనం
 	Scroll the page	పేజీని స్క్రోల్ చేయి

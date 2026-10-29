@@ -2534,6 +2534,8 @@ animation effects	Off	Изключени
 	This key moves around the interface on its own. Add Ctrl to use it.	Този клавиш сам по себе си придвижва из интерфейса. Добавете Ctrl, за да го използвате.
 	This key is used for “{what}” and can't be changed.	Този клавиш се използва за „{what}“ и не може да бъде променен.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} беше взет от „{other}“, която вече няма клавишна комбинация.
+	{key} is already used by “{other}”.	{key} вече се използва от „{other}“.
+	Reassign	Преназначаване
 	Select tool	Инструмент за избор
 	Hand tool	Инструмент „Ръка“
 	Scroll the page	Превъртане на страницата

@@ -2856,6 +2856,8 @@ theme	Appearance	Aparência
 	This key moves around the interface on its own. Add Ctrl to use it.	Esta tecla se move pela interface sozinha. Adicione Ctrl para usá-la.
 	This key is used for “{what}” and can't be changed.	Esta tecla é usada para “{what}” e não pode ser alterada.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} foi retirada de “{other}”, que agora não tem atalho.
+	{key} is already used by “{other}”.	{key} já é usada por “{other}”.
+	Reassign	Reatribuir
 	Select tool	Ferramenta de seleção
 	Hand tool	Ferramenta mão
 	Scroll the page	Rolar a página

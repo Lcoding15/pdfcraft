@@ -2837,6 +2837,8 @@ certificate	Version	Version
 	This key moves around the interface on its own. Add Ctrl to use it.	Cette touche sert seule à se déplacer dans l'interface. Ajoutez Ctrl pour l'utiliser.
 	This key is used for “{what}” and can't be changed.	Cette touche sert à « {what} » et ne peut pas être modifiée.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} a été retiré de « {other} », qui n'a plus de raccourci.
+	{key} is already used by “{other}”.	{key} est déjà utilisé par « {other} ».
+	Reassign	Réattribuer
 	Select tool	Outil de sélection
 	Hand tool	Outil main
 	Scroll the page	Faire défiler la page

@@ -2878,6 +2878,8 @@ certificate	Version	Verze
 	This key moves around the interface on its own. Add Ctrl to use it.	Tato klávesa sama o sobě pohybuje rozhraním. Přidejte Ctrl, abyste ji mohli použít.
 	This key is used for “{what}” and can't be changed.	Tato klávesa slouží pro „{what}“ a nelze ji změnit.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} byla převzata od „{other}“, který teď nemá zkratku.
+	{key} is already used by “{other}”.	{key} už používá „{other}“.
+	Reassign	Přeřadit
 	Select tool	Nástroj výběru
 	Hand tool	Nástroj ruka
 	Scroll the page	Posouvat stránku

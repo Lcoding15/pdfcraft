@@ -2818,6 +2818,8 @@ theme	Appearance	ظاهر
 	This key moves around the interface on its own. Add Ctrl to use it.	این کلید به‌تنهایی در رابط جابه‌جا می‌کند. برای استفاده از آن Ctrl را اضافه کنید.
 	This key is used for “{what}” and can't be changed.	این کلید برای «{what}» به کار می‌رود و تغییر نمی‌کند.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} از «{other}» گرفته شد که اکنون میان‌بری ندارد.
+	{key} is already used by “{other}”.	{key} هم‌اکنون برای «{other}» به کار می‌رود.
+	Reassign	واگذاری دوباره
 	Select tool	ابزار انتخاب
 	Hand tool	ابزار دست
 	Scroll the page	پیمایش صفحه

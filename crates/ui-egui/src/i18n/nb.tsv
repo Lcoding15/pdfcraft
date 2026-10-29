@@ -2747,6 +2747,8 @@ key	Space	Mellomrom
 	This key moves around the interface on its own. Add Ctrl to use it.	Denne tasten flytter rundt i grensesnittet alene. Legg til Ctrl for å bruke den.
 	This key is used for “{what}” and can't be changed.	Denne tasten brukes til «{what}» og kan ikke endres.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} ble tatt fra «{other}», som nå ikke har noen hurtigtast.
+	{key} is already used by “{other}”.	{key} brukes allerede av «{other}».
+	Reassign	Tilordne på nytt
 	Select tool	Merkeverktøy
 	Hand tool	Håndverktøy
 	Scroll the page	Rull siden

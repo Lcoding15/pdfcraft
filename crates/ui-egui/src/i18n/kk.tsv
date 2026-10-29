@@ -2569,6 +2569,8 @@ animation effects	Off	Өшірулі
 	This key moves around the interface on its own. Add Ctrl to use it.	Бұл перне интерфейсте өздігінен жылжиды. Оны қолдану үшін Ctrl қосыңыз.
 	This key is used for “{what}” and can't be changed.	Бұл перне «{what}» үшін қолданылады және оны өзгерту мүмкін емес.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} «{other}» пәрменінен алынды, енді оның пернелер тіркесімі жоқ.
+	{key} is already used by “{other}”.	{key} «{other}» пәрменінде қолданылып тұр.
+	Reassign	Қайта тағайындау
 	Select tool	Таңдау құралы
 	Hand tool	Қол құралы
 	Scroll the page	Бетті айналдыру

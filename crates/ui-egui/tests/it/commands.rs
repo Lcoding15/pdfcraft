@@ -755,6 +755,42 @@ fn a_shortcut_changed_in_the_shortcuts_dialog_runs_its_command() {
     assert_eq!(h.state().shortcuts.get(palette).map(|s| s.label(false)), Some("Ctrl+K".to_string()));
 }
 
+/// #4635: keys another command runs on aren't taken at once. The dialog says who has them; Cancel
+/// leaves both commands as they were, Reassign moves the keys and says the other lost them.
+#[test]
+fn keys_another_command_has_are_taken_only_after_reassign() {
+    let mut h = harness();
+    let palette = pdfcraft_engine::commands::command("view.palette").unwrap();
+    let save = pdfcraft_engine::commands::command("file.save").unwrap();
+    assert_eq!(save.shortcut.map(|s| s.label(false)), Some("Ctrl+S".to_string()));
+    let keys = |h: &Harness<'static, PdfCraftApp>| {
+        (h.state().shortcuts.get(palette).map(|s| s.label(false)), h.state().shortcuts.get(save).map(|s| s.label(false)))
+    };
+    let unchanged = (Some("Ctrl+K".to_string()), Some("Ctrl+S".to_string()));
+    h.state_mut().execute("help.shortcuts");
+    h.run_steps(2);
+    for answer in ["Cancel", "Reassign"] {
+        h.state_mut().shortcut_capture = Some("view.palette");
+        h.run_steps(1);
+        h.key_press_modifiers(Modifiers::COMMAND, Key::S);
+        h.run_steps(2);
+        assert_eq!(keys(&h), unchanged, "nothing moves before the answer");
+        assert!(h.state().shortcut_conflict.is_some() && h.state().shortcut_capture.is_none());
+        h.get_by_label("Ctrl+S is already used by “Save”.");
+        h.get_by_label(answer).click();
+        h.run_steps(2);
+        assert_eq!(h.state().shortcut_conflict, None, "{answer} answers it");
+    }
+    assert_eq!(keys(&h), (Some("Ctrl+S".to_string()), None), "Reassign moved the keys");
+    assert!(h.state().toast.as_ref().is_some_and(|(m, _)| m.contains("Save")), "{:?}", h.state().toast);
+    // A free key needs no answer.
+    h.state_mut().shortcut_capture = Some("file.save");
+    h.run_steps(1);
+    h.key_press_modifiers(Modifiers::COMMAND | Modifiers::SHIFT, Key::J);
+    h.run_steps(2);
+    assert_eq!((h.state().shortcut_conflict, keys(&h).1), (None, Some("Ctrl+Shift+J".to_string())));
+}
+
 /// A key without Ctrl given to a command is typing while a text field has the keyboard.
 #[test]
 fn a_custom_single_key_shortcut_leaves_text_fields_their_typing() {

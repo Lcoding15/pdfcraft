@@ -2838,6 +2838,8 @@ key	Space	Space
 	This key moves around the interface on its own. Add Ctrl to use it.	Phím này tự di chuyển trong giao diện. Thêm Ctrl để sử dụng.
 	This key is used for “{what}” and can't be changed.	Phím này được dùng cho “{what}” và không thể thay đổi.
 	{key} was taken from “{other}”, which now has no shortcut.	Đã lấy {key} từ “{other}”, lệnh này giờ không còn phím tắt.
+	{key} is already used by “{other}”.	{key} đã được dùng cho “{other}”.
+	Reassign	Gán lại
 	Select tool	Công cụ chọn
 	Hand tool	Công cụ bàn tay
 	Scroll the page	Cuộn trang

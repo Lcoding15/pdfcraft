@@ -2763,6 +2763,8 @@ certificate	Version	وەشان
 	This key moves around the interface on its own. Add Ctrl to use it.	ئەم کلیلە بە تەنها لە ڕووکاردا دەجووڵێت. Ctrl زیاد بکە بۆ بەکارهێنانی.
 	This key is used for “{what}” and can't be changed.	ئەم کلیلە بۆ «{what}» بەکاردێت و ناگۆڕدرێت.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} لە «{other}» وەرگیرا، کە ئێستا هیچ کورتەڕێیەکی نییە.
+	{key} is already used by “{other}”.	{key} پێشتر لەلایەن «{other}» بەکاردێت.
+	Reassign	دووبارە دیاریکردن
 	Select tool	ئامرازی هەڵبژاردن
 	Hand tool	ئامرازی دەست
 	Scroll the page	خشاندنی پەڕە

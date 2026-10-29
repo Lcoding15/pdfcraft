@@ -2567,6 +2567,8 @@ animation effects	Off	Kapalı
 	This key moves around the interface on its own. Add Ctrl to use it.	Bu tuş tek başına arayüzde gezinir. Kullanmak için Ctrl ekleyin.
 	This key is used for “{what}” and can't be changed.	Bu tuş “{what}” için kullanılıyor ve değiştirilemez.
 	{key} was taken from “{other}”, which now has no shortcut.	{key}, artık kısayolu olmayan “{other}” komutundan alındı.
+	{key} is already used by “{other}”.	{key} zaten “{other}” tarafından kullanılıyor.
+	Reassign	Yeniden ata
 	Select tool	Seçim aracı
 	Hand tool	El aracı
 	Scroll the page	Sayfayı kaydır

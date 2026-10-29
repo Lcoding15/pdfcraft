@@ -2832,6 +2832,8 @@ theme	Appearance	Aspecte
 	This key moves around the interface on its own. Add Ctrl to use it.	Aquesta tecla mou per la interfície tota sola. Afegiu-hi Ctrl per fer-la servir.
 	This key is used for “{what}” and can't be changed.	Aquesta tecla s'utilitza per a «{what}» i no es pot canviar.
 	{key} was taken from “{other}”, which now has no shortcut.	S'ha pres {key} de «{other}», que ara no té cap drecera.
+	{key} is already used by “{other}”.	{key} ja l'utilitza «{other}».
+	Reassign	Reassigna
 	Select tool	Eina de selecció
 	Hand tool	Eina de mà
 	Scroll the page	Desplaça la pàgina

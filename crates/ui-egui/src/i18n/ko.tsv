@@ -2808,6 +2808,8 @@ theme	Appearance	모양
 	This key moves around the interface on its own. Add Ctrl to use it.	이 키는 단독으로 인터페이스를 이동합니다. 사용하려면 Ctrl을 추가하세요.
 	This key is used for “{what}” and can't be changed.	이 키는 “{what}”에 사용되며 변경할 수 없습니다.
 	{key} was taken from “{other}”, which now has no shortcut.	{key}을(를) “{other}”에서 가져왔습니다. 이제 해당 명령에는 바로 가기가 없습니다.
+	{key} is already used by “{other}”.	{key}은(는) 이미 “{other}”에서 사용 중입니다.
+	Reassign	다시 지정
 	Select tool	선택 도구
 	Hand tool	손 도구
 	Scroll the page	페이지 스크롤

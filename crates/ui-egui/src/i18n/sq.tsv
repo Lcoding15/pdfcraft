@@ -2558,6 +2558,8 @@ animation effects	Off	Joaktiv
 	This key moves around the interface on its own. Add Ctrl to use it.	Ky tast lëviz vetë nëpër ndërfaqe. Shto Ctrl për ta përdorur.
 	This key is used for “{what}” and can't be changed.	Ky tast përdoret për “{what}” dhe nuk mund të ndryshohet.
 	{key} was taken from “{other}”, which now has no shortcut.	{key} u mor nga “{other}”, që tani nuk ka shkurtore.
+	{key} is already used by “{other}”.	{key} përdoret tashmë nga “{other}”.
+	Reassign	Ricakto
 	Select tool	Mjeti i përzgjedhjes
 	Hand tool	Mjeti i dorës
 	Scroll the page	Rrëshqit faqen
