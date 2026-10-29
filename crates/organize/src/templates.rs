@@ -57,7 +57,10 @@ pub fn spawn_template(doc: &mut Document, name: &str, at: usize, rename: bool) -
         rename_fields(&mut src, page, &format!("P{at}"), name)?;
     }
     let before = crate::import::listed_fields(doc);
-    let copied = crate::import_pages(doc, &src, &[index], at)?;
+    // Renamed copies are fields of their own: a second copy spawned at the same page, whose
+    // `P<at>` is taken, gets the first free `P<at>-1`… rather than a name the form already has.
+    let conflicts = if rename { crate::import::FieldConflicts::Rename } else { crate::import::FieldConflicts::Merge };
+    let copied = crate::import::import_pages_with(doc, &src, &[index], at, conflicts)?.pages;
     if !rename && let Some(&copy) = copied.first() {
         crate::import::share_fields_with_originals(doc, copy, &before)?;
     }

@@ -260,3 +260,19 @@ fn showing_and_hiding_keep_every_name_of_a_long_tree() {
     let doc = reopen(&doc);
     assert_eq!((count(&doc, b"Pages"), count(&doc, b"Templates")), (MAX_NAMES + 10, 1));
 }
+
+/// Two renamed copies spawned at the same page get fields of their own, not two fields with one
+/// name: the second takes the first free variant of `P0`.
+#[test]
+fn renamed_copies_at_the_same_page_never_share_a_name() {
+    let mut doc = form();
+    spawn_template(&mut doc, "More", 0, true).unwrap();
+    spawn_template(&mut doc, "More", 0, true).unwrap();
+    let doc = reopen(&doc);
+    let listed = listed_fields(&doc);
+    let mut unique = listed.clone();
+    unique.dedup();
+    assert_eq!(listed, unique, "{listed:?}");
+    assert_eq!(listed.len(), 3, "the template's field and one per copy: {listed:?}");
+    assert_ne!(fields_on(&doc, 0), fields_on(&doc, 1));
+}
