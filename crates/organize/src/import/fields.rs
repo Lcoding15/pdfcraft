@@ -302,9 +302,9 @@ const MAX_FIELD_NODES: usize = 100_000;
 /// Make the widgets on `page`, copied from a page of the same document, more widgets of the
 /// fields they were copied from, so that each field stays one field, with one value shown on
 /// every page (#1429: a page template spawned without renaming). A copied field is matched to
-/// the field of the same fully-qualified name among the objects that existed before the copy
-/// (`before`, by object number); the copies of the matched fields leave the form.
-pub(crate) fn share_fields_with_originals(dst: &mut Document, page: ObjRef, before: &HashSet<u32>) -> Result<(), OrganizeError> {
+/// the field of the same fully-qualified name under the top-level fields the form listed before
+/// the copy (`before`); the copies of the matched fields leave the form.
+pub(crate) fn share_fields_with_originals(dst: &mut Document, page: ObjRef, before: &HashSet<ObjRef>) -> Result<(), OrganizeError> {
     let catalog = dst.root().ok_or(OrganizeError::NoPageTree)?;
     let form_ref = dst.get(catalog).as_dict().and_then(|c| c.reference(b"AcroForm"));
     let form = dst.get(catalog).as_dict().and_then(|c| c.get(b"AcroForm").cloned()).map(|f| dst.resolve(&f).as_ref().clone());
@@ -319,7 +319,7 @@ pub(crate) fn share_fields_with_originals(dst: &mut Document, page: ObjRef, befo
     let mut originals: HashMap<String, ObjRef> = HashMap::new();
     let mut seen = HashSet::new();
     let mut pending: Vec<(ObjRef, String, u8)> =
-        list.iter().filter_map(Object::as_ref).filter(|r| before.contains(&r.num)).map(|r| (r, String::new(), 0)).collect();
+        list.iter().filter_map(Object::as_ref).filter(|r| before.contains(r)).map(|r| (r, String::new(), 0)).collect();
     while let Some((node, prefix, depth)) = pending.pop() {
         if depth > 32 || seen.len() >= MAX_FIELD_NODES || !seen.insert(node) {
             continue;
@@ -333,7 +333,7 @@ pub(crate) fn share_fields_with_originals(dst: &mut Document, page: ObjRef, befo
             originals.entry(name.clone()).or_insert(node);
         }
         for kid in d.get(b"Kids").map(|k| dst.resolve(k).as_ref().clone()).and_then(|k| k.as_array().cloned()).unwrap_or_default() {
-            if let Some(kid) = kid.as_ref().filter(|k| before.contains(&k.num)) {
+            if let Some(kid) = kid.as_ref() {
                 pending.push((kid, name.clone(), depth.saturating_add(1)));
             }
         }
@@ -446,4 +446,17 @@ fn replace_kid(dst: &mut Document, fields: &mut [Object], old: ObjRef, new: ObjR
         }
     }
     Ok(())
+}
+
+/// The top-level fields `doc`'s form lists now, before an import adds its own.
+pub(crate) fn listed_fields(doc: &Document) -> HashSet<ObjRef> {
+    doc.root()
+        .and_then(|r| doc.get(r).as_dict().cloned())
+        .and_then(|c| c.get(b"AcroForm").map(|f| doc.resolve(f).as_ref().clone()))
+        .and_then(|f| f.as_dict().and_then(|f| f.get(b"Fields")).map(|l| doc.resolve(l).as_ref().clone()))
+        .and_then(|l| l.as_array().cloned())
+        .unwrap_or_default()
+        .iter()
+        .filter_map(Object::as_ref)
+        .collect()
 }

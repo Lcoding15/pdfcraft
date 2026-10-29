@@ -216,3 +216,21 @@ fn every_unrenamed_copy_is_one_more_widget_of_the_one_field() {
     assert_eq!(fields_on(&doc, 1), ["Extra"]);
     assert_eq!(fields_on(&doc, 2), ["Extra"]);
 }
+
+/// A visible named page that inherits its media box from the page tree keeps it when hidden:
+/// out of the tree, nothing would give it one.
+#[test]
+fn a_hidden_page_keeps_what_it_inherited() {
+    let mut doc = build(&[
+        "<< /Type /Catalog /Pages 2 0 R /Names << /Pages << /Names [(Cover) 4 0 R] >> >> >>",
+        "<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 /MediaBox [0 0 210 297] >>",
+        "<< /Type /Page /Parent 2 0 R >>",
+        "<< /Type /Page /Parent 2 0 R >>",
+    ]);
+    set_template_hidden(&mut doc, "Cover", true).unwrap();
+    assert_eq!(page_count(&doc).unwrap(), 1);
+    let page: Dict = doc.get(ObjRef::new(4, 0)).as_dict().cloned().unwrap();
+    let media = page.get(b"MediaBox").and_then(|m| m.as_array().cloned()).expect("its media box, inherited before");
+    assert_eq!(media.len(), 4);
+    assert_eq!(templates(&doc), [Template { name: "Cover".into(), hidden: true }]);
+}

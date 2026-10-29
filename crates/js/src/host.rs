@@ -63,11 +63,14 @@ impl Host {
             Request::LaunchUrl(u) => Request::LaunchUrl(xfa::clip(u)),
             Request::Submit(u) => Request::Submit(xfa::clip(u)),
             Request::Focus(n) => Request::Focus(xfa::clip(n)),
+            Request::SpawnTemplate { name, page, rename, overlay } => Request::SpawnTemplate { name: xfa::clip(name), page, rename, overlay },
+            Request::SetTemplateHidden { name, hidden } => Request::SetTemplateHidden { name: xfa::clip(name), hidden },
             other => other,
         };
         let bytes = match &r {
             Request::Reset(names) => names.iter().fold(0usize, |n, s| n.saturating_add(s.len()).saturating_add(std::mem::size_of::<String>())),
             Request::LaunchUrl(u) | Request::Submit(u) | Request::Focus(u) => u.len(),
+            Request::SpawnTemplate { name, .. } | Request::SetTemplateHidden { name, .. } => name.len(),
             _ => 0,
         };
         if self.room(bytes) {

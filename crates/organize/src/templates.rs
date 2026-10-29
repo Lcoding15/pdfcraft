@@ -56,7 +56,7 @@ pub fn spawn_template(doc: &mut Document, name: &str, at: usize, rename: bool) -
     if rename {
         rename_fields(&mut src, page, &format!("P{at}"), name)?;
     }
-    let before: HashSet<u32> = doc.object_numbers().into_iter().collect();
+    let before = crate::import::listed_fields(doc);
     let copied = crate::import_pages(doc, &src, &[index], at)?;
     if !rename && let Some(&copy) = copied.first() {
         crate::import::share_fields_with_originals(doc, copy, &before)?;
