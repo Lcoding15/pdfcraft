@@ -3,12 +3,14 @@
 //! dialog, the palette, the quick bar, the chrome over a page scrolled under it) lets the page's
 //! cursor, tips or presses through.
 //!
-//! The ignored tests pin live bugs that later steps of the page pointer router fix: one cursor
-//! writer (step 2), one hit test (step 3), and press-time capture with cancel (step 4).
+//! The ignored tests pin live bugs that later steps of the page pointer router fix: one hit test
+//! (step 3), and press-time capture with cancel (step 4).
 
 use egui_kittest::Harness;
+use egui_kittest::kittest::Queryable;
 use pdfcraft_engine::StampKind;
 use pdfcraft_ui_egui::comments::CommentTool;
+use pdfcraft_ui_egui::fill_sign::FillTool;
 use pdfcraft_ui_egui::{PdfCraftApp, QuickTool, UnlockPrompt};
 
 use crate::support::input::{coalesced_click, double_click, one_frame, touch_drag, touch_tap};
@@ -73,6 +75,18 @@ fn comment_on_text_pdf() -> Vec<u8> {
         "<< /Type /Annot /Subtype /Square /Rect [30 290 200 320] /C [1 0 0] /Border [0 0 2] /F 4 /T (Reviewer) >>",
         text.as_str(),
         HELVETICA,
+    ])
+}
+
+/// A 300×400 page with two rectangle comments overlapping at x 100..150, y 200..250: "Bottom
+/// note" first in `/Annots`, then "Top note" over it.
+fn stacked_comments_pdf() -> Vec<u8> {
+    pdf(&[
+        CATALOG,
+        PAGES,
+        "<< /Type /Page /Parent 2 0 R /Annots [4 0 R 5 0 R] >>",
+        "<< /Type /Annot /Subtype /Square /Rect [50 150 150 250] /C [1 0 0] /F 4 /T (Ana) /Contents (Bottom note) >>",
+        "<< /Type /Annot /Subtype /Square /Rect [100 200 200 300] /C [0 0 1] /F 4 /T (Ben) /Contents (Top note) >>",
     ])
 }
 
@@ -173,6 +187,12 @@ fn agree(h: &Harness<'_, PdfCraftApp>) -> Vec<String> {
     s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == "agree").unwrap().value.clone()
 }
 
+/// Whether the page's hover tip shows and says `text`.
+fn tip_says(h: &Harness<'_, PdfCraftApp>, text: &str) -> bool {
+    let Some(tip) = h.ctx.memory(|m| m.area_rect(egui::Id::unique("canvas-hover"))).filter(|_| tip_shown(h)) else { return false };
+    h.query_all_by_label_contains(text).any(|n| tip.contains(n.rect().center()))
+}
+
 /// Hovers `p` until `want` accepts the cursor there (text layers and paragraph boxes arrive from
 /// worker threads), and returns the last cursor seen.
 fn wait_for_cursor(h: &mut Harness<'_, PdfCraftApp>, p: egui::Pos2, want: impl Fn(egui::CursorIcon) -> bool) -> egui::CursorIcon {
@@ -191,7 +211,6 @@ fn wait_for_cursor(h: &mut Harness<'_, PdfCraftApp>, p: egui::Pos2, want: impl F
 // The cursor promises one thing and a press does another.
 
 #[test]
-#[ignore = "step 2 of the page pointer router: one cursor writer"]
 fn stamp_tool_over_a_link_shows_its_crosshair() {
     let mut h = open(link_pdf(), "150", false);
     stamp_tool(&mut h);
@@ -205,7 +224,6 @@ fn stamp_tool_over_a_link_shows_its_crosshair() {
 }
 
 #[test]
-#[ignore = "step 2 of the page pointer router: one cursor writer"]
 fn rectangle_tool_over_a_link_shows_its_crosshair() {
     let mut h = open(link_pdf(), "150", false);
     h.state_mut().quick_tool = QuickTool::Comment(CommentTool::Rectangle);
@@ -218,7 +236,6 @@ fn rectangle_tool_over_a_link_shows_its_crosshair() {
 }
 
 #[test]
-#[ignore = "step 2 of the page pointer router: one cursor writer"]
 fn edit_text_over_a_linked_word_offers_the_move_arrow() {
     let mut h = open(linked_text_pdf(), "150", false);
     h.state_mut().quick_tool = QuickTool::EditText;
@@ -242,7 +259,6 @@ fn edit_text_over_a_linked_word_offers_the_move_arrow() {
 }
 
 #[test]
-#[ignore = "step 2 of the page pointer router: one cursor writer"]
 fn select_tool_over_a_comment_on_text_offers_the_move_arrow() {
     let mut h = open(comment_on_text_pdf(), "150", false);
     // Inside the rectangle where there is no text, and inside it over a word.
@@ -257,6 +273,71 @@ fn select_tool_over_a_comment_on_text_offers_the_move_arrow() {
     assert_eq!(over_blank, egui::CursorIcon::Move, "a movable comment offers the four-way arrow");
     assert!((after[0] - before[0] - 20.0).abs() < 1.5, "a drag from the text moves the rectangle: {before:?} → {after:?}");
     assert_eq!(over_text, egui::CursorIcon::Move, "so it offers the arrow where text lies under it too");
+}
+
+#[test]
+fn a_links_tip_shows_only_with_its_hand() {
+    let mut h = open(link_pdf(), "150", false);
+    let on_link = at(&h, 150.0, 325.0);
+    let hover = |h: &mut Harness<'_, PdfCraftApp>, tool: QuickTool, nudge: f32| {
+        h.state_mut().quick_tool = tool;
+        h.run_steps(4);
+        // A new position each time, so the hover is fresh.
+        let cursor = cursor_at(h, on_link + egui::vec2(nudge, 0.0));
+        h.run_steps(2);
+        (cursor, tip_says(h, "https://example.org/"))
+    };
+    use egui::CursorIcon::{Crosshair, PointingHand};
+    assert_eq!(hover(&mut h, QuickTool::Select, 0.0), (PointingHand, true), "the Select tool follows the link, and the tip says where to");
+    assert_eq!(hover(&mut h, QuickTool::Link, 1.0), (PointingHand, true), "the Link tool edits it");
+    let stamp = QuickTool::Stamp(StampKind::DynApproved);
+    assert_eq!(hover(&mut h, stamp, 2.0), (Crosshair, false), "a click places a stamp, so neither hand nor tip offers the link");
+    let rectangle = QuickTool::Comment(CommentTool::Rectangle);
+    assert_eq!(hover(&mut h, rectangle, 3.0), (Crosshair, false), "a drag draws a rectangle");
+}
+
+/// Over two comments the tip names the one drawn on top (#3620), and a click should select that
+/// one too. The renderer paints in `/Annots` order, but the hit test takes the last comment in
+/// inspection's order, which is by top edge, and selects the one underneath.
+#[test]
+#[ignore = "step 3 of the page pointer router: one hit test"]
+fn a_click_on_stacked_comments_selects_the_one_drawn_on_top() {
+    let mut h = open(stacked_comments_pdf(), "150", false);
+    let overlap = at(&h, 125.0, 225.0);
+    assert_eq!(cursor_at(&mut h, overlap), egui::CursorIcon::Move);
+    h.run_steps(2);
+    assert!(tip_says(&h, "Top note") && !tip_says(&h, "Bottom note"), "the tip names the comment drawn on top");
+    mouse_click(&mut h, overlap);
+    assert_eq!(h.state().views[0].comments.selected, Some((0, 1)), "a click selects it too");
+}
+
+#[test]
+fn a_comments_tip_shows_with_every_tool_beside_its_cursor() {
+    let mut h = open(comment_on_text_pdf(), "150", false);
+    // Inside the rectangle comment by "Reviewer": where there is no text, and over a word.
+    let (blank, on_text) = (at(&h, 120.0, 315.0), at(&h, 60.0, 303.0));
+    let hover = |h: &mut Harness<'_, PdfCraftApp>, tool: QuickTool, p: egui::Pos2, want: egui::CursorIcon| {
+        h.state_mut().quick_tool = tool;
+        h.run_steps(4);
+        let cursor = wait_for_cursor(h, p, |c| c == want);
+        h.run_steps(2);
+        (cursor, tip_says(h, "Reviewer"))
+    };
+    use egui::CursorIcon::{Crosshair, Move, Text};
+    // A new position each time, so the hover is fresh.
+    let nudge = |n: f32| blank + egui::vec2(n, 0.0);
+    assert_eq!(hover(&mut h, QuickTool::Select, blank, Move), (Move, true), "the Select tool picks the comment up");
+    let stamp = QuickTool::Stamp(StampKind::DynApproved);
+    assert_eq!(hover(&mut h, stamp, nudge(1.0), Crosshair), (Crosshair, true), "a stamp keeps its crosshair, and the comment still says whose it is");
+    let rectangle = QuickTool::Comment(CommentTool::Rectangle);
+    assert_eq!(hover(&mut h, rectangle, nudge(2.0), Crosshair), (Crosshair, true), "so does a drawing tool");
+    let highlight = QuickTool::Comment(CommentTool::Highlight);
+    assert_eq!(hover(&mut h, highlight, on_text, Text), (Text, true), "and the highlighter its I-beam");
+    // Not while drawing freehand, where it would cover the next stroke (#429), nor with Fill & Sign.
+    let ink = QuickTool::Comment(CommentTool::Ink);
+    assert_eq!(hover(&mut h, ink, nudge(3.0), Crosshair), (Crosshair, false), "freehand");
+    let fill = QuickTool::Fill(FillTool::Check);
+    assert_eq!(hover(&mut h, fill, nudge(4.0), Crosshair), (Crosshair, false), "Fill & Sign");
 }
 
 /// Narrows the paragraph by dragging its left edge 100 pt inward, starting `dx` screen points
@@ -300,13 +381,15 @@ fn a_paragraph_edge_resizes_wherever_it_shows_the_resize_cursor() {
 // ---------------------------------------------------------------------------------------------
 // Things drawn over the page keep the page's cursor, tips and presses off.
 
+/// Check that the command palette's frame keeps the default cursor over the page while the page beside it
+/// still shows the stamp tool.
 #[test]
 fn stamp_cursor_stays_off_the_command_palette() {
     let mut h = open(link_pdf(), "300", false);
     stamp_tool(&mut h);
     h.state_mut().palette_open = true;
     h.run_steps(4);
-    let palette = h.ctx.memory(|m| m.area_rect(egui::Id::new("palette"))).expect("palette shown");
+    let palette = h.ctx.memory(|m| m.area_rect(egui::Id::unique("palette"))).expect("palette shown");
     // On the palette's frame margin, where none of its widgets sets a cursor, over the page.
     let p = egui::pos2(palette.left() + 4.0, palette.bottom() - 4.0);
     assert!(page(&h).contains(p), "the palette must lie over the page here");
@@ -324,7 +407,7 @@ fn link_tip_stays_off_while_the_palette_is_open() {
     let mut h = open(link_pdf(), "300", false);
     h.state_mut().palette_open = true;
     h.run_steps(4);
-    let palette = h.ctx.memory(|m| m.area_rect(egui::Id::new("palette"))).expect("palette shown");
+    let palette = h.ctx.memory(|m| m.area_rect(egui::Id::unique("palette"))).expect("palette shown");
     let beside = [60.0, 100.0, 150.0, 200.0, 240.0]
         .into_iter()
         .flat_map(|x| [305.0, 325.0, 345.0].map(|y| at(&h, x, y)))
@@ -339,10 +422,10 @@ fn link_tip_stays_off_while_the_palette_is_open() {
     h.get_by_label("https://example.org/");
 }
 
-/// A panel's tab carried over a link shows neither its tip nor its cursor, and the link answers
-/// again once the tab is let go.
+/// A panel's resize edge dragged over a link shows neither the link's tip nor its cursor, and the
+/// link answers again once the edge is let go.
 #[test]
-fn a_dragged_panel_tab_passes_over_a_link_without_its_tip() {
+fn a_dragged_panel_edge_passes_over_a_link_without_its_tip() {
     use egui::accesskit::Role;
     use egui_kittest::kittest::Queryable;
     let mut h = open(link_pdf(), "150", false);
@@ -354,10 +437,17 @@ fn a_dragged_panel_tab_passes_over_a_link_without_its_tip() {
     assert_eq!(cursor_at(&mut h, on_link), egui::CursorIcon::PointingHand);
     h.run_steps(2);
     assert!(tip_shown(&h), "the link's tip shows over an uncovered page");
-    // Away from the link, then the Inspector's tab is picked up and carried over it.
+    // Away from the link, then the side panel's resize edge (the rightmost one) is picked up and
+    // carried over it.
     h.hover_at(at(&h, 150.0, 100.0));
     h.run_steps(4);
-    let tab = h.get_by(|n| n.role() == Role::Tab && n.label().as_deref() == Some("Inspector")).rect().center();
+    let tab = h
+        .get_all_by(|n| n.role() == Role::Splitter && n.label().as_deref() == Some("Resize panels"))
+        .map(|n| n.rect().center())
+        .max_by(|a, b| a.x.total_cmp(&b.x))
+        .expect("the side panel has a resize edge")
+        // The pane's half of the edge: the page, drawn after the panes, takes the other half.
+        + egui::vec2(2.0, 0.0);
     h.hover_at(tab);
     h.run_steps(1);
     h.drag_at(tab);
@@ -368,11 +458,11 @@ fn a_dragged_panel_tab_passes_over_a_link_without_its_tip() {
     }
     for _ in 0..4 {
         h.run_steps(2);
-        assert!(h.ctx.dragged_id().is_some(), "the tab is still being dragged");
-        assert!(!tip_shown(&h), "no link tip under a dragged panel tab");
+        assert!(h.ctx.dragged_id().is_some(), "the edge is still being dragged");
+        assert!(!tip_shown(&h), "no link tip under a dragged panel edge");
         assert_ne!(h.output().platform_output.cursor_icon, egui::CursorIcon::PointingHand);
     }
-    // Back to the tab and let go there, which leaves the layout as it was.
+    // Back to the start and let go there, which leaves the width as it was.
     for i in 1..=8 {
         h.hover_at(on_link + (tab - on_link) * (i as f32 / 8.0));
         h.run_steps(1);
@@ -385,21 +475,30 @@ fn a_dragged_panel_tab_passes_over_a_link_without_its_tip() {
     assert!(tip_shown(&h), "and shows its tip");
 }
 
+/// Send one wheel event over the page and let its scrolling settle.
 fn wheel(h: &mut Harness<'_, PdfCraftApp>, delta: egui::Vec2) {
     h.hover_at(egui::pos2(800.0, 500.0));
-    h.event(egui::Event::MouseWheel { unit: egui::MouseWheelUnit::Point, delta, modifiers: egui::Modifiers::NONE, phase: egui::TouchPhase::Move });
+    h.event(egui::Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta,
+        modifiers: egui::Modifiers::NONE,
+        phase: egui::TouchPhase::Move,
+        source: egui::MouseWheelSource::Unknown,
+    });
     for _ in 0..10 {
         h.run_steps(2);
     }
 }
 
+/// Check that the quick bar's frame keeps the default cursor over the page while the page below it still
+/// shows the stamp tool.
 #[test]
 fn stamp_cursor_stays_off_the_quick_bar() {
     let mut h = open(link_pdf(), "400", true);
     stamp_tool(&mut h);
     // Bring the page under the quick bar's left end.
     wheel(&mut h, egui::vec2(-200.0, 0.0));
-    let bar = h.ctx.memory(|m| m.area_rect(egui::Id::new("quick-bar"))).expect("quick bar shown");
+    let bar = h.ctx.memory(|m| m.area_rect(egui::Id::unique("quick-bar"))).expect("quick bar shown");
     // Inside the bar's frame margin: no button there.
     let p = egui::pos2(bar.left() + 3.0, bar.bottom() - 3.0);
     assert!(page(&h).contains(p), "the quick bar must lie over the page here");
@@ -428,7 +527,7 @@ fn stamp_cursor_stays_off_the_chrome_above_a_page_scrolled_under_it() {
 
 /// Whether the page's hover tip was drawn in the last frame.
 fn tip_shown(h: &Harness<'_, PdfCraftApp>) -> bool {
-    let tip = egui::LayerId::new(egui::Order::Tooltip, egui::Id::new("canvas-hover"));
+    let tip = egui::LayerId::new(egui::Order::Tooltip, egui::Id::unique("canvas-hover"));
     h.ctx.memory(|m| m.areas().is_visible(&tip))
 }
 
@@ -438,6 +537,7 @@ fn open_unlock_prompt(h: &mut Harness<'_, PdfCraftApp>) {
     h.state_mut().unlock_prompt = Some(UnlockPrompt { doc, name: "test.pdf".into(), input: String::new(), error: None, then: None });
 }
 
+/// Check that the link tip and pointing cursor disappear under the Unlock prompt.
 #[test]
 fn link_tip_stays_under_the_unlock_prompt() {
     let mut h = open(link_pdf(), "300", true);
@@ -454,18 +554,19 @@ fn link_tip_stays_under_the_unlock_prompt() {
     for _ in 0..4 {
         h.run_steps(2);
     }
-    let card = h.ctx.memory(|m| m.area_rect(egui::Id::new("unlock")));
+    let card = h.ctx.memory(|m| m.area_rect(egui::Id::unique("unlock")));
     assert!(card.is_none_or(|c| !c.contains(on_link)), "the point must be on the backdrop, not the card: {card:?}");
     assert!(!tip_shown(&h), "the link's tip must not float over the Unlock prompt");
     assert_ne!(h.output().platform_output.cursor_icon, egui::CursorIcon::PointingHand);
 }
 
+/// Check that moving onto a link's floating tip still reports the link's pointing-hand cursor.
 #[test]
 fn the_link_tip_lets_the_pointer_through_to_the_link() {
     let mut h = open(link_pdf(), "150", false);
     let p = at(&h, 100.0, 340.0);
     assert_eq!(cursor_at(&mut h, p), egui::CursorIcon::PointingHand);
-    let tip = h.ctx.memory(|m| m.area_rect(egui::Id::new("canvas-hover"))).expect("the link's tip");
+    let tip = h.ctx.memory(|m| m.area_rect(egui::Id::unique("canvas-hover"))).expect("the link's tip");
     // A quick move lands on the tip, drawn beside where the pointer was, and still on the link.
     let onto = tip.min + egui::vec2(6.0, 6.0);
     assert!(egui::Rect::from_two_pos(at(&h, 50.0, 350.0), at(&h, 250.0, 300.0)).contains(onto), "the point must be on the link");

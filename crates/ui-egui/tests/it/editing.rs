@@ -1087,6 +1087,9 @@ fn save_prompt_fits_the_smallest_window_whatever_the_name() {
     let size = egui::vec2(820.0, 520.0);
     for name in names {
         let start: String = name.chars().take(10).collect();
+        if support::skip_without_glyphs(&format!("save_prompt_fits_the_smallest_window_whatever_the_name ({start}…)"), "en", &name) {
+            continue;
+        }
         let mut h = Harness::builder().with_size(size).build_eframe(move |_cc| {
             let mut app = PdfCraftApp::new();
             app.set_option("language", "en").unwrap();
@@ -1368,11 +1371,8 @@ fn edit_menu_names_the_step_to_undo() {
     let mut h = harness(2, |app| {
         app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
     });
-    h.get_by_label("Menu").click();
-    h.run_steps(2);
-    h.get_by_label("Edit ⏵").hover(); // submenus open on hover; their labels carry the arrow
-    h.run_steps(3);
-    h.get_by_label_contains("Undo Rotate page").click(); // the label includes the shortcut
+    support::open_menu(&mut h, "Edit");
+    support::menu_row(&h, "Undo Rotate page").click();
     h.run_steps(3);
     let app = h.state();
     let doc = app.session.get(app.views[0].id).unwrap();
@@ -3573,6 +3573,9 @@ fn an_applied_paragraph_keeps_its_edited_look_until_the_page_is_redrawn() {
 /// as a form field does; the editor used to close with the error and the typing was lost.
 #[test]
 fn a_paragraph_whose_edit_fails_stays_open_with_its_typing() {
+    if crate::support::skip_without_glyphs("a_paragraph_whose_edit_fails_stays_open_with_its_typing", "en", "Top ก") {
+        return;
+    }
     let bytes = source_font_fixture_with_text("BT /F1 24 Tf 20 220 Td (Top) Tj ET BT /F2 24 Tf 20 120 Td (Bottom) Tj ET");
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
         let mut app = PdfCraftApp::new();
@@ -3698,7 +3701,7 @@ fn editing_existing_text_in_place() {
 /// paragraph editor and retypes it as "Chapter One", leaving the editor open.
 fn edit_tab_with_an_open_paragraph(h: &mut Harness<'static, PdfCraftApp>) {
     use pdfcraft_ui_egui::{Mode, QuickTool};
-    h.get_by_label("Edit").click();
+    support::outside_menus(h, "Edit").click();
     h.run_steps(3);
     assert_eq!((h.state().mode, h.state().quick_tool), (Mode::Edit, QuickTool::EditText));
     open_the_first_line(h);
@@ -3972,12 +3975,14 @@ fn dragging_the_rotate_knob_turns_a_page_image() {
     let to = egui::pos2(c.x + 100.0, c.y);
     h.hover_at(knob);
     h.run_steps(1);
+    assert_eq!(h.output().platform_output.cursor_icon, egui::CursorIcon::Grab, "the knob offers to turn the picture");
     h.drag_at(knob);
     h.run_steps(1);
     for k in 1..=4 {
         h.hover_at(knob + (to - knob) * (k as f32 / 4.0));
         h.run_steps(1);
     }
+    assert_eq!(h.output().platform_output.cursor_icon, egui::CursorIcon::Grabbing, "and holds it while it turns");
     h.drop_at(to);
     h.run_steps(4);
     let doc = h.state().session.get(id).unwrap();
@@ -6203,6 +6208,125 @@ fn organize_panel_comes_with_the_grid_and_closes_it() {
     assert!(h.query_by_label("Page properties").is_none(), "the panel is gone");
 }
 
+/// Organize pages ▸ Page properties ▸ Tab Order sets the tab order of the selected pages only,
+/// as one undo step, and opens on the order the pages have.
+#[test]
+fn page_properties_sets_the_tab_order_of_the_selected_pages() {
+    use pdfcraft_engine::TabOrder::{Annotations, Column, Row};
+    let tabs = |h: &Harness<'static, PdfCraftApp>| h.state().session.get(h.state().views[0].id).unwrap().tab_orders();
+    // The undo and redo labels: a new step replaces the redo step an undo left.
+    let undo = |h: &Harness<'static, PdfCraftApp>| {
+        let doc = h.state().session.get(h.state().views[0].id).unwrap();
+        (doc.can_undo().map(str::to_owned), doc.can_redo().map(str::to_owned))
+    };
+    let mut h = organize(3);
+    h.get_by_label("Select page 1").click();
+    h.run_steps(2);
+    h.get_by_label("Select page 3").click();
+    h.run_steps(2);
+    h.get_by_label("Page properties").click();
+    h.run_steps(3);
+    assert_eq!(h.state().dialog, Some(Dialog::PageProps));
+    assert_eq!(h.state().page_props_draft.as_ref().unwrap().tab_order, Some(Annotations), "opens on Unspecified, as the pages have it");
+    h.get_by_label("Use Column Order").click();
+    h.run_steps(2);
+    h.get_by_label("OK").click();
+    h.run_steps(3);
+    assert_eq!(h.state().dialog, None);
+    assert_eq!(tabs(&h), [Column, Annotations, Column]);
+    assert_eq!(undo(&h).0.as_deref(), Some("Set tab order"));
+    h.key_press_modifiers(Modifiers::COMMAND, Key::Z);
+    h.run_steps(3);
+    assert_eq!(tabs(&h), [Annotations; 3], "one undo step");
+
+    // Pages with different orders open with no choice made, and OK is off until one is.
+    h.state_mut().apply_edit(pdfcraft_engine::Edit::SetTabOrder { pages: vec![0], order: Row });
+    h.run_steps(2);
+    h.state_mut().views[0].select_pages(&[0, 1]);
+    assert!(h.state_mut().execute("page.properties"));
+    h.run_steps(3);
+    assert_eq!(h.state().page_props_draft.as_ref().unwrap().tab_order, None);
+    assert!(h.get_by_label("OK").accesskit_node().is_disabled());
+    h.get_by_label("Use Row Order").click();
+    h.run_steps(2);
+    h.get_by_label("OK").click();
+    h.run_steps(3);
+    assert_eq!(tabs(&h), [Row, Row, Annotations]);
+
+    // OK on the order the pages already have adds no undo step, and Cancel changes nothing.
+    h.key_press_modifiers(Modifiers::COMMAND, Key::Z);
+    h.run_steps(3);
+    let before = (tabs(&h), undo(&h));
+    assert_eq!(before.1.1.as_deref(), Some("Set tab order"), "the undone step can be redone");
+    h.state_mut().views[0].select_pages(&[2]);
+    assert!(h.state_mut().execute("page.properties"));
+    h.run_steps(3);
+    h.get_by_label("OK").click();
+    h.run_steps(3);
+    assert_eq!((tabs(&h), undo(&h)), before);
+    assert!(h.state_mut().execute("page.properties"));
+    h.run_steps(3);
+    h.get_by_label("Use Document Structure").click();
+    h.run_steps(2);
+    h.get_by_label("Cancel").click();
+    h.run_steps(3);
+    assert_eq!(h.state().dialog, None);
+    assert_eq!((tabs(&h), undo(&h)), before);
+}
+
+/// Page properties sets the tab order of the document it was opened on: when another document
+/// is active by OK, neither document changes.
+#[test]
+fn page_properties_does_not_apply_to_another_active_document() {
+    use pdfcraft_engine::TabOrder::Annotations;
+    let mut h = organize(3);
+    let first = h.state().views[0].id;
+    h.state_mut().views[0].select_pages(&[0]);
+    assert!(h.state_mut().execute("page.properties"));
+    h.run_steps(3);
+    h.get_by_label("Use Column Order").click();
+    h.run_steps(2);
+    h.state_mut().open_bytes("other.pdf", None, fixture(3)).unwrap();
+    h.run_steps(4);
+    let other = h.state().views[1].id;
+    assert_eq!(h.state().active_ids().map(|(_, id)| id), Some(other));
+    h.get_by_label("OK").click();
+    h.run_steps(3);
+    assert_eq!(h.state().dialog, None);
+    for id in [first, other] {
+        let doc = h.state().session.get(id).unwrap();
+        assert_eq!(doc.tab_orders(), [Annotations; 3]);
+        assert!(doc.can_undo().is_none());
+    }
+}
+
+/// Page properties sets the tab order of the pages it was opened on: when an edit changes the
+/// document while the dialog is open, OK closes it without changing a page.
+#[test]
+fn page_properties_does_not_apply_after_the_document_changes() {
+    use pdfcraft_engine::TabOrder::Annotations;
+    let mut h = organize(3);
+    let id = h.state().views[0].id;
+    h.state_mut().views[0].select_pages(&[0]);
+    assert!(h.state_mut().execute("page.properties"));
+    h.run_steps(3);
+    h.get_by_label("Use Column Order").click();
+    h.run_steps(2);
+    // Page 1 becomes page 3, so index 0 is another page now.
+    assert!(h.state_mut().execute("page.reverse"));
+    h.run_steps(3);
+    h.get_by_label("OK").click();
+    h.run_steps(3);
+    assert_eq!(h.state().dialog, None);
+    let doc = h.state().session.get(id).unwrap();
+    assert_eq!(doc.tab_orders(), [Annotations; 3]);
+    assert_ne!(doc.can_undo(), Some("Set tab order"));
+    assert_eq!(
+        h.state().toast.as_ref().map(|t| t.0.as_str()),
+        Some("The document changed while the dialog was open, so nothing was changed. Open Page properties again to set the tab order.")
+    );
+}
+
 /// Leaving Organize (a page opened from the grid, or the grid's Close) goes back to the
 /// workspace's panel: under the Edit tab, the Edit panel, not All tools.
 #[test]
@@ -6346,6 +6470,7 @@ fn a_paragraph_running_off_its_page_edits_without_covering_the_next_page() {
         delta: egui::vec2(0.0, -300.0),
         phase: egui::TouchPhase::Move,
         modifiers: egui::Modifiers::NONE,
+        source: egui::MouseWheelSource::Unknown,
     });
     h.run_steps(4);
     let scrolled = h.state().views[0].page_screen_rect(0).unwrap();
