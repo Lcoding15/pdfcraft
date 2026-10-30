@@ -103,6 +103,19 @@ impl PinnedFolders {
             }
         }
     }
+
+    /// Fold pinned `folder` down to its heading (`collapsed`) or open it again. Returns false,
+    /// changing nothing, when `folder` isn't pinned.
+    pub(crate) fn set_collapsed(&mut self, folder: &str, collapsed: bool) -> bool {
+        if !self.folders.iter().any(|f| f == folder) {
+            return false;
+        }
+        self.collapsed.retain(|f| f != folder);
+        if collapsed {
+            self.collapsed.push(folder.to_string());
+        }
+        true
+    }
 }
 
 /// `path` as a folder to pin: trimmed, without a trailing separator, and absolute; `None` if it
@@ -237,6 +250,24 @@ impl PdfCraftApp {
         self.pinned.listings.retain(|l| l.folder != folder);
         self.pinned.expanded.retain(|f| f != folder);
         self.pinned.collapsed.retain(|f| f != folder);
+    }
+
+    /// `ui.set folder-collapsed <folder>=on|off` (CodeRabbit on #5341): the control channel's
+    /// way to fold a pinned folder down to its heading or open it again, as its chevron does.
+    /// `ui.state` lists the pinned folders and which are collapsed. The folder is named by its
+    /// path as pinned; the last `=` splits it from the state, so a path may hold `=` too.
+    pub(crate) fn set_folder_collapsed(&mut self, value: &str) -> Result<(), String> {
+        let (folder, state) = value.rsplit_once('=').ok_or("folder-collapsed must be <folder>=on or <folder>=off")?;
+        let collapsed = match state {
+            "on" => true,
+            "off" => false,
+            _ => return Err("folder-collapsed must be <folder>=on or <folder>=off".into()),
+        };
+        if self.pinned.set_collapsed(folder, collapsed) {
+            Ok(())
+        } else {
+            Err(format!("folder-collapsed: {folder} is not a pinned folder (ui.state lists them)"))
+        }
     }
 
     /// List the pinned folders again if the last listing is older than a few seconds or the
@@ -442,11 +473,8 @@ pub(crate) fn section(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         }
     }
     if let Some(folder) = fold {
-        if app.pinned.collapsed.contains(&folder) {
-            app.pinned.collapsed.retain(|f| *f != folder);
-        } else {
-            app.pinned.collapsed.push(folder);
-        }
+        let collapsed = app.pinned.collapsed.contains(&folder);
+        app.pinned.set_collapsed(&folder, !collapsed);
     }
     if let Some(path) = open {
         app.open_recent(&path);
