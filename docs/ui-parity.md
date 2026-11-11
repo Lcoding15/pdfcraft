@@ -1,6 +1,6 @@
 # UI and interaction parity
 
-> **Last reviewed:** 2026-10-21 · **Last updated:** 2026-10-25 · **Change:** minor (pinned tabs, #2926; Pages inspector thumbnail size slider and buttons #3808; full screen presents one page at a time #1459; the selected field nudges with the arrow keys in Prepare a form #2608; → / ← scroll a page wider than the window before turning it; a comment's text, border or line, and fill each at an opacity of its own) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
+> **Last reviewed:** 2026-10-29 · **Last updated:** 2026-10-29 · **Change:** minor (full screen plays page transitions and display times, hides a still pointer, and a right-click or Shift+Enter goes back a page #379; pinned tabs, #2926) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
 
 How PdfCraft's tools, panels, shortcuts and feel compare with Acrobat Pro's current interface (the
 2023+ "new Acrobat": All tools pane on the left, quick-action toolbar, Home view). Behaviour is
@@ -8,6 +8,8 @@ observed clean-room (`plan/acrobat/02-ui-ux.md`, local-only; `AGENTS.md` §2); n
 interface is copied. Gaps ranked in [gaps.md](gaps.md).
 
 **UI/UX fidelity ≈ 55% ready** (estimated), **30–60 h** additional to the features total.
+
+The [PDF workflow research reference](research/pdf-workflows/README.md) collects comparative source locators, interaction evidence and evaluation criteria. It does not change this checklist.
 
 ## Measured
 
@@ -31,8 +33,8 @@ No dump of Acrobat's menu tree has been diffed against the registry yet (gap 24)
 | Document tabs | yes | yes, with unsaved marker | shipped |
 | Pinned tabs that open at every start | not checked | a tab's menu ▸ Pin Tab: a pin icon, first in the strip, reopened at each start (#2926) | shipped |
 | Multiple windows, drag a tab out | yes | no | planned |
-| Split window, spreadsheet split | yes | no | planned |
-| Read mode, full screen | yes | yes; full screen is one fitted page at a time on black, click/keys turn pages (#1459) | shipped; auto-advance, loop and transitions planned |
+| Split window, spreadsheet split | yes | split right or down (⌘\\, tab menu, a tab dropped on the page), one document or two; no four-pane spreadsheet split | split shipped; spreadsheet split planned |
+| Read mode, full screen | yes | yes; full screen is one fitted page or spread at a time on black, and background clicks and keys turn pages while clicks on links, comments, fields and other page objects do not (#1459), a right-click or Shift+Enter goes back, page transitions and display times play (#379), a still pointer hides | shipped; loop after the last page and the full-screen preferences planned |
 | Light, dark, system theme | yes | yes | shipped |
 | Side panels: thumbnails, bookmarks, attachments, layers, comments, fields, signatures | yes | yes; panels keep their width (#704); the Pages inspector has a 50–150% thumbnail size slider and buttons (#3808) | shipped |
 | Destinations, articles, model tree, Tags, Order, Content panels | yes | no | planned |
@@ -77,13 +79,15 @@ No dump of Acrobat's menu tree has been diffed against the registry yet (gap 24)
 | Print dialog with preview | yes | yes | shipped |
 | Document Properties (description, security, fonts, initial view, custom, advanced) | yes | all but Custom and XMP | partial |
 | Field Properties (General, Appearance, Position, Options, Actions, Format, Validate, Calculate, Signed) | yes | all but Signed | partial |
-| Comment properties and properties bar | yes | yes; a text box's text, border and fill and a shape's line and fill each take an opacity of their own (Acrobat: one per comment) | shipped |
+| Comment properties and properties bar | yes | yes; a text box's text, border and fill and a shape's line and fill each take an opacity of their own (Acrobat: one per comment); text boxes and typed text take an oval or a circle for their border (Acrobat: a rectangle) | shipped |
+| Select several comments; copy and paste comments between documents | yes | yes: ⌘/Ctrl-click adds, Delete, a drag, Properties and Colour act on all, ⌘C/⌘V as XFDF (also across PdfCraft processes) | shipped |
 | Preferences | ≈ 20 pages | Interface language, Documents and view, Identity, Fill & Sign, JavaScript | partial (gap 19) |
 
 ## Revision history
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-29 | minor | Full screen plays page transitions (/Trans) and display times (/Dur), hides a still pointer, and a right-click or Shift+Enter goes back a page (#379) |
 | 2026-10-25 | minor | Pinned tabs: a tab's menu pins it; pinned tabs show a pin, lead the strip and open at every start (#2926); score unchanged (estimated) |
 | 2026-10-24 | minor | → / ← scroll a page wider than the window sideways before turning it, by the current page's or spread's edges in continuous view; ⌘→ / ⌘← turn at once |
 | 2026-10-24 | minor | Comment Properties sets a text box's text, border and fill opacity and a shape's line and fill opacity each on its own (Acrobat: one per comment); Make Properties Default carries them into the tool |
