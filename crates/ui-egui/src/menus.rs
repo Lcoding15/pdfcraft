@@ -496,6 +496,12 @@ impl PdfCraftApp {
                     doc.is_some_and(|d| d.allows_copying() && (command.id != CUT || d.allows_modification()))
                 }
                 PASTE if edit_objects && self.object_clipboard.is_some() => doc.is_some_and(pdfcraft_engine::Document::allows_modification),
+                // Comments selected on the page (a drawn line, a note) are what Copy takes, and
+                // Paste brings back copied comments, as ⌘C and ⌘V already do (#7123).
+                "edit.copy" if !organize && view.is_some_and(|v| !v.comments.selection().is_empty()) => true,
+                PASTE if !organize && !edit_objects && self.comment_clipboard.is_some() => {
+                    doc.is_some_and(pdfcraft_engine::Document::allows_annotation)
+                }
                 CUT => organize && enabled_id("page.cut"),
                 PASTE => organize && self.page_clipboard.is_some() && enabled_id("page.paste"),
                 SELECT_ALL | DELETE => has_doc,
@@ -760,6 +766,27 @@ mod tests {
         assert_eq!(app.session.get(doc).unwrap().info.pages[0].rotation, before, "a click that arrives anyway does nothing");
         // Quit still asks the window to close, which asks about unsaved changes.
         assert!(app.menu_gate(&ctx).allows_command(&Builtin::Quit.command()));
+    }
+
+    /// #7123: with a comment selected, Edit ▸ Copy is on and its click copies as ⌘C does; with
+    /// comments copied, Edit ▸ Paste is on and its click asks for the clipboard as ⌘V does.
+    #[test]
+    fn copy_and_paste_follow_selected_and_copied_comments() {
+        let (mut app, ctx) = app(&["a.pdf"]);
+        let (copy, paste) = (CommandRef::new("edit.copy"), CommandRef::new(PASTE));
+        let enabled = |app: &PdfCraftApp, c: &CommandRef| app.menu_state(&ctx, c).enabled;
+        assert!(!enabled(&app, &copy) && !enabled(&app, &paste), "nothing to copy or paste yet");
+        app.views[0].comments.select_only((0, 0));
+        assert!(enabled(&app, &copy), "a selected comment is copied");
+        app.run_menu_command(&ctx, &copy);
+        assert!(app.menu_input.iter().any(|e| matches!(e, egui::Event::Copy)), "the click copies as ⌘C does");
+        app.comment_clipboard = Some(crate::state::CommentClip { xfdf: String::new(), count: 1 });
+        assert!(enabled(&app, &paste), "copied comments are pasted");
+        app.run_menu_command(&ctx, &paste);
+        assert_eq!(app.menu_pastes, 1, "the click pastes as ⌘V does");
+        // Organize keeps its page clipboard: no pages copied, no Paste.
+        app.views[0].organize = true;
+        assert!(!enabled(&app, &paste));
     }
 
     #[test]
